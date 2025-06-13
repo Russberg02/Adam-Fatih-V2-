@@ -152,42 +152,42 @@ try:
     })
     st.dataframe(fatigue_df.style.format({"Value": "{:.3f}"}))
     
-    # Plotting
-    st.subheader('Fluctuating Stress Diagram')
-    fig, ax = plt.subplots(figsize=(10, 8))
-    
-    # Plot criteria lines
-    x_goodman = np.linspace(0, inputs['uts'], 100)
-    y_goodman = stresses['Se'] * (1 - x_goodman / inputs['uts'])
-    
-    x_soderberg = np.linspace(0, inputs['yield_stress'], 100)
-    y_soderberg = stresses['Se'] * (1 - x_soderberg / inputs['yield_stress'])
-    
-    ax.plot(x_goodman, y_goodman, 'b-', label='Goodman Line')
-    ax.plot(x_soderberg, y_soderberg, 'r-', label='Soderberg Line')
-    
-    # Plot operating point
-    ax.scatter(stresses['sigma_m'], stresses['sigma_a'], color='purple', s=100,
-              label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
-    
-    # Mark key points
-    ax.scatter(0, stresses['Se'], color='green', s=100, label=f'Se = {stresses["Se"]:.1f} MPa')
-    ax.scatter(inputs['uts'], 0, color='blue', s=100, label=f'UTS = {inputs["uts"]:.1f} MPa')
-    ax.scatter(inputs['yield_stress'], 0, color='red', s=100, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
-    
-    # Formatting
-    max_val = max(inputs['uts'], inputs['yield_stress'], stresses['Se'], 
-                stresses['sigma_m']*1.5, stresses['sigma_a']*1.5)
-    ax.set_xlim(0, max_val)
-    ax.set_ylim(0, max_val)
-    ax.set_xlabel('Mean Stress (σm) [MPa]')
-    ax.set_ylabel('Alternating Stress (σa) [MPa]')
-    ax.set_title('Fatigue Analysis Diagram')
-    ax.grid(True, linestyle=':')
-    ax.legend()
-    ax.set_aspect('equal')
-    
-    st.pyplot(fig)
+# Plotting
+st.subheader('Fluctuating Stress Diagram')
+fig, ax = plt.subplots(figsize=(10, 8))
+
+# Generate x-axis values
+x = np.linspace(0, inputs['uts'], 100)
+
+# Plot all criteria lines
+ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 'b-', label='Goodman')  # Goodman
+ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 'r-', label='Soderberg')  # Soderberg
+ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 'g--', label='Gerber')  # Gerber
+ax.plot(x, stresses['Se']*(1 - x/(inputs['uts'] + 345)), 'm:', label='Morrow')  # Morrow
+ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['uts'])**2), 'c-.', label='ASME-Elliptic')  # ASME-Elliptic
+
+# Plot operating point
+ax.scatter(stresses['sigma_m'], stresses['sigma_a'], color='purple', s=100,
+          label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
+
+# Mark key points
+ax.scatter(0, stresses['Se'], color='green', s=100, label=f'Se = {stresses["Se"]:.1f} MPa')
+ax.scatter(inputs['uts'], 0, color='blue', s=100, label=f'UTS = {inputs["uts"]:.1f} MPa')
+ax.scatter(inputs['yield_stress'], 0, color='red', s=100, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+
+# Formatting
+max_val = max(inputs['uts'], inputs['yield_stress'], stresses['Se'], 
+          stresses['sigma_m']*1.5, stresses['sigma_a']*1.5)
+ax.set_xlim(0, max_val)
+ax.set_ylim(0, max_val)
+ax.set_xlabel('Mean Stress (σm) [MPa]')
+ax.set_ylabel('Alternating Stress (σa) [MPa]')
+ax.set_title('Fatigue Analysis Diagram (Multiple Criteria)')
+ax.grid(True, linestyle=':')
+ax.legend()
+ax.set_aspect('equal')
+
+st.pyplot(fig)
 
 except ValueError as e:
     st.error(f"Calculation error: {str(e)}")
