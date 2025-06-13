@@ -1,5 +1,5 @@
-numpy
-pandas
-Pillow
-streamlit
-matplotlib
+streamlit==1.26.0
+pandas==2.0.3
+numpy==1.25.2
+matplotlib==3.7.2
+Pillow==9.5.0
