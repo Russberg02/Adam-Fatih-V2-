@@ -13,174 +13,148 @@ st.set_page_config(
     page_icon="⚙️"
 )
 
-# New industrial color palette
-PRIMARY_BLUE = "#2c3e50"        # Deep blue for primary elements
-ACCENT_BLUE = "#3498db"          # Bright blue for accents
+# Industrial color palette
+INDUSTRIAL_BLUE = "#2c3e50"      # Deep steel blue
+SAFETY_BLUE = "#3498db"          # Safety blue
+STEEL_GRAY = "#7f8c8d"           # Steel gray
 SAFETY_GREEN = "#27ae60"         # Safety green
 SAFETY_RED = "#e74c3c"           # Safety red
-ACCENT_ORANGE = "#f39c12"        # Orange for highlights
-NEUTRAL_GRAY = "#7f8c8d"         # Neutral gray
-LIGHT_BG = "#ecf0f1"             # Light background
-ACCENT_PURPLE = "#9b59b6"        # Purple for special accents
+SAFETY_ORANGE = "#f39c12"        # Safety orange
+PIPE_COLOR = "#95a5a6"           # Pipe metal color
+ACCENT_PURPLE = "#9b59b6"        # Engineering accent
+DARK_ACCENT = "#2c3e50"          # Dark accent
+LIGHT_GRAY = "#ecf0f1"           # Light background
 
 # Custom CSS for industrial styling
 st.markdown(f"""
 <style>
     /* Main styling */
     .stApp {{
-        background-color: {LIGHT_BG};
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: {LIGHT_GRAY};
     }}
     
     /* Titles and headers */
-    h1, h2, h3, h4 {{
-        color: {PRIMARY_BLUE};
-        border-bottom: 2px solid {ACCENT_BLUE};
+    h1, h2, h3 {{
+        color: {INDUSTRIAL_BLUE};
+        border-bottom: 2px solid {SAFETY_BLUE};
         padding-bottom: 0.3rem;
     }}
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {{
-        background-color: {NEUTRAL_GRAY};
+        background-color: {INDUSTRIAL_BLUE};
         color: white;
     }}
     
     .sidebar .sidebar-content {{
-        background-color: {PRIMARY_BLUE};
+        background-color: {INDUSTRIAL_BLUE};
     }}
     
     /* Button styling */
     .stButton>button {{
-        background-color: {ACCENT_BLUE};
+        background-color: {SAFETY_BLUE};
         color: white;
         border-radius: 4px;
         border: none;
         font-weight: bold;
         padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
     }}
     
     .stButton>button:hover {{
         background-color: #2980b9;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        color: white;
+    }}
+    
+    /* Dataframe styling */
+    .dataframe {{
+        border: 1px solid {SAFETY_BLUE};
+        border-radius: 5px;
     }}
     
     /* Card styling */
     .card {{
         background: white;
         border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid {ACCENT_BLUE};
-        transition: all 0.3s ease;
-    }}
-    
-    .card:hover {{
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid {SAFETY_BLUE};
     }}
     
     /* Status indicators */
     .safe {{
         color: {SAFETY_GREEN};
         font-weight: bold;
-        font-size: 1.1rem;
     }}
     
     .unsafe {{
         color: {SAFETY_RED};
         font-weight: bold;
-        font-size: 1.1rem;
+    }}
+    
+    /* Grid layout */
+    .grid-container {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
     }}
     
     /* Value display */
     .value-display {{
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         font-weight: bold;
-        color: {ACCENT_BLUE};
-        text-align: center;
-        margin: 15px 0;
+        color: {INDUSTRIAL_BLUE};
     }}
     
     /* Section headers */
     .section-header {{
-        background-color: {PRIMARY_BLUE};
+        background-color: {STEEL_GRAY};
         color: white;
-        padding: 12px 15px;
+        padding: 10px;
         border-radius: 4px;
-        margin: 25px 0 15px 0;
+        margin-top: 20px;
     }}
     
     /* Material design elements */
     .material-card {{
-        background: linear-gradient(145deg, #ffffff, #f8f9fa);
-        border: 1px solid #e0e0e0;
+        background: linear-gradient(145deg, #ffffff, #f2f2f2);
+        border: 1px solid #ddd;
         border-radius: 4px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }}
     
-    /* Progress bars */
+    /* Industrial progress bars */
     .progress-container {{
         height: 8px;
         background-color: #e0e0e0;
         border-radius: 4px;
-        margin: 15px 0;
+        margin: 10px 0;
         overflow: hidden;
     }}
     
     .progress-bar {{
         height: 100%;
-        background: linear-gradient(90deg, {ACCENT_BLUE}, {ACCENT_PURPLE});
-    }}
-    
-    /* Table styling */
-    .data-table {{
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 1rem;
-    }}
-    
-    .data-table tr {{
-        border-bottom: 1px solid #eee;
-    }}
-    
-    .data-table td {{
-        padding: 10px;
-    }}
-    
-    .data-table td:last-child {{
-        font-weight: bold;
-        text-align: right;
-    }}
-    
-    /* Footer styling */
-    .footer {{
-        background-color: {PRIMARY_BLUE};
-        color: white;
-        padding: 20px;
-        border-radius: 5px;
-        margin-top: 30px;
+        background-color: {SAFETY_BLUE};
     }}
 </style>
 """, unsafe_allow_html=True)
 
 # App header with industrial theme
 st.markdown(f"""
-<div style="background-color:{PRIMARY_BLUE}; padding:25px; border-radius:5px; margin-bottom:25px;">
-    <h1 style="color:white; margin:0; text-align:center;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
-    <p style="color:#bdc3c7; text-align:center; margin:5px 0 0 0;">Pipeline Integrity Management System for Energy Sector</p>
+<div style="background-color:{INDUSTRIAL_BLUE}; padding:20px; border-radius:5px; margin-bottom:20px;">
+    <h1 style="color:white; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
+    <p style="color:#bdc3c7;">Pipeline Integrity Management System for Energy Sector</p>
 </div>
 """, unsafe_allow_html=True)
 
 # Sidebar with industrial color scheme
 with st.sidebar:
     st.markdown(f"""
-    <div style="background-color:{PRIMARY_BLUE}; padding:12px; border-radius:4px; margin-bottom:20px;">
-        <h3 style="color:white; margin:0; text-align:center;">Pipeline Parameters</h3>
+    <div style="background-color:{DARK_ACCENT}; padding:10px; border-radius:4px; margin-bottom:15px;">
+        <h3 style="color:white; margin:0;">Pipeline Parameters</h3>
     </div>
     """, unsafe_allow_html=True)
     
@@ -203,19 +177,16 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown(f"""
-    <div style="background-color:{PRIMARY_BLUE}; padding:12px; border-radius:4px; margin-top:15px;">
+    <div style="background-color:{DARK_ACCENT}; padding:10px; border-radius:4px; margin-top:15px;">
         <h4 style="color:white; margin:0;">Safety Indicators</h4>
-        <p style="color:#bdc3c7; margin:3px 0 0 0;">✅ Safe: Value ≤ 1<br>❌ Unsafe: Value > 1</p>
+        <p style="color:#bdc3c7; margin:0;">✅ Safe: Value ≤ 1<br>❌ Unsafe: Value > 1</p>
     </div>
     """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button('Run Analysis', use_container_width=True, type="primary"):
-            st.session_state.run_analysis = True
-    with col2:
-        if st.button('Reset Values', use_container_width=True):
-            st.session_state.run_analysis = False
+    if st.button('Run Analysis', use_container_width=True, type="primary"):
+        st.session_state.run_analysis = True
+    if st.button('Reset Values', use_container_width=True):
+        st.session_state.run_analysis = False
 
 # Image and intro section
 st.subheader('Pipeline Configuration')
@@ -226,7 +197,7 @@ with col1:
 with col2:
     st.markdown(f"""
     <div class="material-card">
-        <h4>Assessment Protocol</h4>
+        <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 2px solid {SAFETY_BLUE}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
@@ -236,11 +207,9 @@ with col2:
             <li>Check safety status for all criteria</li>
         </ol>
         <div class="progress-container">
-            <div class="progress-bar" style="width: {'70%' if st.session_state.get('run_analysis', False) else '15%'};"></div>
+            <div class="progress-bar" style="width: {'50%' if st.session_state.get('run_analysis', False) else '10%'};"></div>
         </div>
-        <p style="text-align: right; font-weight:bold; margin:5px 0 0 0;">
-            Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}
-        </p>
+        <p style="text-align: right; color:{STEEL_GRAY}; margin:0;">Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -350,20 +319,20 @@ if st.session_state.get('run_analysis', False):
         
         burst_cols = st.columns(5)
         burst_data = [
-            ("Von Mises", pressures['P_vm'], ACCENT_BLUE),
+            ("Von Mises", pressures['P_vm'], SAFETY_BLUE),
             ("Tresca", pressures['P_tresca'], SAFETY_GREEN),
             ("ASME B31G", pressures['P_asme'], ACCENT_PURPLE),
             ("DNV", pressures['P_dnv'], SAFETY_RED),
-            ("PCORRC", pressures['P_pcorrc'], ACCENT_ORANGE)
+            ("PCORRC", pressures['P_pcorrc'], SAFETY_ORANGE)
         ]
         
         for i, (name, value, color) in enumerate(burst_data):
             with burst_cols[i]:
                 st.markdown(f"""
                 <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0; text-align:center;">{name}</h4>
+                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
                     <div class="value-display">{value:.2f} MPa</div>
-                    <div style="height: 4px; background: #e0e0e0; margin: 10px 0;">
+                    <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
                         <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
                     </div>
                 </div>
@@ -381,27 +350,27 @@ if st.session_state.get('run_analysis', False):
         with stress_col1:
             st.markdown(f"""
             <div class="material-card">
-                <h4>Stress Parameters</h4>
-                <table class="data-table">
-                    <tr>
-                        <td>Max VM Stress</td>
-                        <td>{stresses['sigma_vm_max']:.2f} MPa</td>
+                <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 1px solid {STEEL_GRAY}; padding-bottom: 5px;">Stress Parameters</h4>
+                <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Max VM Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_max']:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Min VM Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_min']:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Alternating Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_a']:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Mean Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_m']:.2f} MPa</td>
                     </tr>
                     <tr>
-                        <td>Min VM Stress</td>
-                        <td>{stresses['sigma_vm_min']:.2f} MPa</td>
-                    </tr>
-                    <tr>
-                        <td>Alternating Stress</td>
-                        <td>{stresses['sigma_a']:.2f} MPa</td>
-                    </tr>
-                    <tr>
-                        <td>Mean Stress</td>
-                        <td>{stresses['sigma_m']:.2f} MPa</td>
-                    </tr>
-                    <tr>
-                        <td>Endurance Limit</td>
-                        <td>{stresses['Se']:.2f} MPa</td>
+                        <td style="padding: 8px;">Endurance Limit</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['Se']:.2f} MPa</td>
                     </tr>
                 </table>
             </div>
@@ -416,7 +385,7 @@ if st.session_state.get('run_analysis', False):
                 stresses['sigma_vm_min'],
                 stresses['sigma_a']
             ]
-            colors = [ACCENT_BLUE, SAFETY_RED, ACCENT_PURPLE]
+            colors = [SAFETY_BLUE, STEEL_GRAY, ACCENT_PURPLE]
             bars = ax.bar(categories, values, color=colors)
             
             # Add value labels
@@ -424,11 +393,11 @@ if st.session_state.get('run_analysis', False):
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2., height,
                         f'{height:.1f} MPa',
-                        ha='center', va='bottom', fontsize=10)
+                        ha='center', va='bottom', fontsize=9)
             
             ax.set_ylim(0, max(values) * 1.2)
-            ax.set_title('Stress Distribution', fontsize=12, color=PRIMARY_BLUE)
-            ax.grid(axis='y', linestyle='--', alpha=0.5)
+            ax.set_title('Stress Distribution', fontsize=10, color=INDUSTRIAL_BLUE)
+            ax.grid(axis='y', linestyle='--', alpha=0.7)
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             plt.tight_layout()
@@ -443,11 +412,11 @@ if st.session_state.get('run_analysis', False):
         
         fatigue_cols = st.columns(5)
         fatigue_data = [
-            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", ACCENT_BLUE),
+            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", SAFETY_BLUE),
             ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", SAFETY_GREEN),
             ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", ACCENT_PURPLE),
             ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", SAFETY_RED),
-            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", ACCENT_ORANGE)
+            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", SAFETY_ORANGE)
         ]
         
         for i, (name, value, equation, color) in enumerate(fatigue_data):
@@ -458,11 +427,11 @@ if st.session_state.get('run_analysis', False):
                 
                 st.markdown(f"""
                 <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0; text-align:center;">{name}</h4>
-                    <div style="font-size: 0.9em; text-align:center; margin-bottom: 12px;">{equation}</div>
+                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
+                    <div style="font-size: 0.85em; color: {STEEL_GRAY}; margin-bottom: 10px;">{equation}</div>
                     <div class="value-display">{value:.3f}</div>
-                    <div class="{status_class}" style="text-align:center; margin-top: 15px;">{status}</div>
-                    <div style="height: 4px; background: #e0e0e0; margin: 15px 0;">
+                    <div class="{status_class}" style="margin-top: 10px;">{status}</div>
+                    <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
                         <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
                     </div>
                 </div>
@@ -481,20 +450,20 @@ if st.session_state.get('run_analysis', False):
         x = np.linspace(0, inputs['uts']*1.1, 100)
         
         # Plot all criteria with distinct styles
-        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), color=ACCENT_BLUE, linewidth=2, label='Goodman')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), color=SAFETY_BLUE, linewidth=2, label='Goodman')
         ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), color=SAFETY_GREEN, linewidth=2, label='Soderberg')
         ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), color=ACCENT_PURPLE, linestyle='--', linewidth=2, label='Gerber')
         ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), color=SAFETY_RED, linestyle=':', linewidth=2, label='Morrow')
-        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), color=ACCENT_ORANGE, linestyle='-.', linewidth=2, label='ASME-Elliptic')
+        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), color=SAFETY_ORANGE, linestyle='-.', linewidth=2, label='ASME-Elliptic')
         
         # Plot operating point
         ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-                  color=PRIMARY_BLUE, s=120, edgecolor='white', zorder=10,
+                  color=INDUSTRIAL_BLUE, s=120, edgecolor='white', zorder=10,
                   label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
         
         # Mark key points
         ax.scatter(0, stresses['Se'], color=SAFETY_GREEN, s=80, label=f'Se = {stresses["Se"]:.1f} MPa')
-        ax.scatter(inputs['uts'], 0, color=ACCENT_BLUE, s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
+        ax.scatter(inputs['uts'], 0, color=SAFETY_BLUE, s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
         ax.scatter(inputs['yield_stress'], 0, color=SAFETY_RED, s=80, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
         
         # Formatting
@@ -502,14 +471,14 @@ if st.session_state.get('run_analysis', False):
         max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
         ax.set_xlim(0, max_x)
         ax.set_ylim(0, max_y)
-        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=11, color=PRIMARY_BLUE)
-        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=11, color=PRIMARY_BLUE)
-        ax.set_title('Fatigue Analysis Diagram', fontsize=13, color=PRIMARY_BLUE, fontweight='bold')
-        ax.grid(True, linestyle='--', alpha=0.3)
-        ax.set_facecolor('#f8f9fa')
+        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=INDUSTRIAL_BLUE)
+        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10, color=INDUSTRIAL_BLUE)
+        ax.set_title('Fatigue Analysis Diagram', fontsize=12, color=INDUSTRIAL_BLUE, fontweight='bold')
+        ax.grid(True, linestyle='--', alpha=0.7)
+        ax.set_facecolor(LIGHT_GRAY)
         
         # Create custom legend
-        ax.legend(loc='upper right', bbox_to_anchor=(1.35, 1), fontsize=10)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.35, 1), fontsize=9)
         plt.tight_layout()
         
         st.pyplot(fig)
@@ -521,8 +490,8 @@ if st.session_state.get('run_analysis', False):
 else:
     st.markdown(f"""
     <div class="material-card">
-        <h4 style="text-align: center; margin-top:10px;">⏳ Ready for Analysis</h4>
-        <p style="text-align: center; margin:15px 0;">
+        <h4 style="color:{INDUSTRIAL_BLUE}; text-align: center;">⏳ Ready for Analysis</h4>
+        <p style="text-align: center; color:{STEEL_GRAY};">
             Enter parameters in the sidebar and click 'Run Analysis' to start
         </p>
         <div class="progress-container">
@@ -564,16 +533,17 @@ with ref_col2:
         """)
 
 # Footer
+st.markdown("---")
 st.markdown(f"""
-<div class="footer">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="background-color:{INDUSTRIAL_BLUE}; padding:20px; border-radius:5px; margin-top:20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; color:white;">
         <div>
-            <h4 style="margin:0;">FATIH v2.0 | Industrial Pipeline Integrity System</h4>
-            <p style="margin:5px 0 0 0; color:#bdc3c7;">© 2023 Engineering Solutions Ltd.</p>
+            <h4 style="margin:0; color:white;">FATIH v2.0 | Industrial Pipeline Integrity System</h4>
+            <p style="margin:0; color:#bdc3c7;">© 2023 Engineering Solutions Ltd.</p>
         </div>
         <div style="text-align: right;">
-            <p style="margin:0;">Technical Support: support@fatih-eng.com</p>
-            <p style="margin:5px 0 0 0; color:#bdc3c7;">Phone: +1 (800) 555-ENGI</p>
+            <p style="margin:0; color:#bdc3c7;">Technical Support: support@fatih-eng.com</p>
+            <p style="margin:0; color:#bdc3c7;">Phone: +1 (800) 555-ENGI</p>
         </div>
     </div>
 </div>
