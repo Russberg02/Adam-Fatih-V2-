@@ -5,35 +5,133 @@ import math
 import matplotlib.pyplot as plt
 from PIL import Image
 from matplotlib.lines import Line2D
+import plotly.graph_objects as go
 
 # Configuration
-st.set_page_config(layout="wide")
-st.title("Assessment & Diagnostics for Aging Materials Fatigue Assessment Tool for Integrity and Health")
+st.set_page_config(
+    layout="wide",
+    page_title="FATIH - Fatigue Assessment Tool for Integrity & Health",
+    page_icon="🔧"
+)
 
-# Sidebar inputs
-st.sidebar.header('User Input Parameters')
-
-def user_input_features():
-    params = {
-        'pipe_thickness': st.sidebar.number_input('Pipe Thickness, t (mm)', min_value=0.1, value=10.0),
-        'pipe_diameter': st.sidebar.number_input('Pipe Diameter, D (mm)', min_value=0.1, value=200.0),
-        'pipe_length': st.sidebar.number_input('Pipe Length, L (mm)', min_value=0.1, value=1000.0),
-        'corrosion_length': st.sidebar.number_input('Corrosion Length, Lc (mm)', min_value=0.0, value=50.0),
-        'corrosion_depth': st.sidebar.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, max_value=10.0, value=2.0),
-        'yield_stress': st.sidebar.number_input('Yield Stress, Sy (MPa)', min_value=0.1, value=300.0),
-        'uts': st.sidebar.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, value=400.0),
-        'max_pressure': st.sidebar.slider('Maximum Operating Pressure, Pop, Max (MPa)', min_value=0, max_value=50, value=10),
-        'min_pressure': st.sidebar.slider('Minimum Operating Pressure, Pop, Min (MPa)', min_value=0, max_value=50, value=5)
+# Custom CSS for professional styling
+st.markdown("""
+<style>
+    /* Main styling */
+    .stApp {
+        background-color: #f8f9fa;
     }
-    return params
+    
+    /* Titles and headers */
+    h1, h2, h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 0.3rem;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #2c3e50;
+        color: white;
+    }
+    
+    .sidebar .sidebar-content {
+        background-color: #2c3e50;
+    }
+    
+    /* Button styling */
+    .stButton>button {
+        background-color: #3498db;
+        color: white;
+        border-radius: 4px;
+        border: none;
+        font-weight: bold;
+    }
+    
+    .stButton>button:hover {
+        background-color: #2980b9;
+        color: white;
+    }
+    
+    /* Dataframe styling */
+    .dataframe {
+        border: 1px solid #3498db;
+        border-radius: 5px;
+    }
+    
+    /* Card styling */
+    .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    /* Status indicators */
+    .safe {
+        color: #27ae60;
+        font-weight: bold;
+    }
+    
+    .unsafe {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# App header with industrial theme
+st.title("🔧 FATIH - Fatigue Assessment Tool for Integrity & Health")
+st.markdown("### Industrial Pipeline Integrity Management System")
+
+# Sidebar with industrial color scheme
+with st.sidebar:
+    st.header('⚙️ Pipeline Parameters', divider='blue')
+    st.subheader('Dimensional Parameters')
+    
+    inputs = {
+        'pipe_thickness': st.number_input('Pipe Thickness, t (mm)', min_value=0.1, value=10.0),
+        'pipe_diameter': st.number_input('Pipe Diameter, D (mm)', min_value=0.1, value=200.0),
+        'pipe_length': st.number_input('Pipe Length, L (mm)', min_value=0.1, value=1000.0),
+        'corrosion_length': st.number_input('Corrosion Length, Lc (mm)', min_value=0.0, value=50.0),
+        'corrosion_depth': st.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, max_value=10.0, value=2.0)
+    }
+    
+    st.subheader('Material Properties')
+    inputs['yield_stress'] = st.number_input('Yield Stress, Sy (MPa)', min_value=0.1, value=300.0)
+    inputs['uts'] = st.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, value=400.0)
+    
+    st.subheader('Operating Conditions')
+    inputs['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 10)
+    inputs['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 5)
+    
+    st.markdown("---")
+    st.markdown("**Safety Factors**")
+    st.info("""
+    - Safe: ✅ (Value ≤ 1)
+    - Unsafe: ❌ (Value > 1)
+    """)
 
 # Image display
-st.subheader('Dimensional Parameters')
-st.image("https://www.researchgate.net/profile/Changqing-Gong/publication/313456917/figure/fig1/AS:573308992266241@1513698923813/Schematic-illustration-of-the-geometry-of-a-typical-corrosion-defect.png", 
-         caption="Fig. 1: Schematic illustration of the geometry of a typical corrosion defect.")
-
-# Get user inputs
-inputs = user_input_features()
+st.subheader('Pipeline Configuration')
+col1, col2 = st.columns([1, 2])
+with col1:
+    st.image("https://www.researchgate.net/profile/Changqing-Gong/publication/313456917/figure/fig1/AS:573308992266241@1513698923813/Schematic-illustration-of-the-geometry-of-a-typical-corrosion-defect.png", 
+             caption="Fig. 1: Corrosion defect geometry")
+with col2:
+    st.markdown("""
+    <div class="card">
+        <h4>Assessment Guidelines</h4>
+        <ul>
+            <li>Enter pipeline dimensions and material properties</li>
+            <li>Specify operating pressure range</li>
+            <li>Review burst pressure calculations</li>
+            <li>Analyze stress and fatigue results</li>
+            <li>Check safety status for all criteria</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Calculations
 def calculate_pressures(inputs):
@@ -120,7 +218,7 @@ def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
         'ASME-Elliptic': np.sqrt((sigma_a / Se)**2 + (sigma_m / Sy)**2)
     }
 
-# Perform calculations and display results
+# Main analysis section
 try:
     # Calculate all parameters
     pressures = calculate_pressures(inputs)
@@ -131,138 +229,233 @@ try:
         stresses['sigma_f']
     )
     
-    # Display results
-    st.subheader('Input Parameters')
-    st.dataframe(pd.DataFrame.from_dict(inputs, orient='index', columns=['Value']))
+    # Burst Pressure Results in Card Layout
+    st.subheader('📊 Burst Pressure Assessment')
+    burst_col1, burst_col2, burst_col3, burst_col4, burst_col5 = st.columns(5)
     
-    st.subheader('Burst Pressure Calculations')
-    pressure_df = pd.DataFrame({
-        'Model': ['Von Mises', 'Tresca', 'ASME B31G', 'DNV', 'PCORRC'],
-        'Pressure (MPa)': [
-            pressures['P_vm'],
-            pressures['P_tresca'],
-            pressures['P_asme'],
-            pressures['P_dnv'],
-            pressures['P_pcorrc']
-        ]
-    })
-    st.dataframe(pressure_df.style.format({"Pressure (MPa)": "{:.2f}"}))
+    burst_data = [
+        ("Von Mises", pressures['P_vm'], "#3498db"),
+        ("Tresca", pressures['P_tresca'], "#2ecc71"),
+        ("ASME B31G", pressures['P_asme'], "#9b59b6"),
+        ("DNV", pressures['P_dnv'], "#e74c3c"),
+        ("PCORRC", pressures['P_pcorrc'], "#f39c12")
+    ]
     
-    st.subheader('Stress Analysis')
-    stress_df = pd.DataFrame({
-        'Parameter': ['Max VM Stress', 'Min VM Stress', 'Alternating Stress', 'Mean Stress', 'Endurance Limit'],
-        'Value (MPa)': [
-            stresses['sigma_vm_max'],
-            stresses['sigma_vm_min'],
-            stresses['sigma_a'],
-            stresses['sigma_m'],
-            stresses['Se']
-        ]
-    })
-    st.dataframe(stress_df.style.format({"Value (MPa)": "{:.2f}"}))
+    for i, (name, value, color) in enumerate(burst_data):
+        with [burst_col1, burst_col2, burst_col3, burst_col4, burst_col5][i]:
+            st.markdown(f"""
+            <div class="card" style="border-left: 5px solid {color};">
+                <h4 style="margin-top: 0;">{name}</h4>
+                <h3>{value:.2f} MPa</h3>
+            </div>
+            """, unsafe_allow_html=True)
     
-    st.subheader('Fatigue Assessment')
-    fatigue_df = pd.DataFrame({
-        'Criterion': ['Goodman', 'Soderberg', 'Gerber', 'Morrow', 'ASME-Elliptic'],
-        'Equation': [
-            'σa/Se + σm/UTS = 1',
-            'σa/Se + σm/Sy = 1',
-            'σa/Se + (σm/UTS)² = 1',
-            'σa/Se + σm/(UTS+345) = 1',
-            '(σa/Se)² + (σm/Sy)² = 1'
-        ],
-        'Value': [
-            fatigue['Goodman'],
-            fatigue['Soderberg'],
-            fatigue['Gerber'],
-            fatigue['Morrow'],
-            fatigue['ASME-Elliptic']
-        ],
-        'Safe': [
-            fatigue['Goodman'] <= 1,
-            fatigue['Soderberg'] <= 1,
-            fatigue['Gerber'] <= 1,
-            fatigue['Morrow'] <= 1,
-            fatigue['ASME-Elliptic'] <= 1
-        ]
-    })
-    fatigue_df['Value'] = fatigue_df['Value'].apply(lambda x: f"{x:.3f}")
-    fatigue_df['Safe'] = fatigue_df['Safe'].apply(lambda x: "✅ Yes" if x else "❌ No")
-    st.dataframe(fatigue_df)
+    # Stress Analysis in Tabs
+    st.subheader('📈 Stress Analysis')
+    tab1, tab2 = st.tabs(["Stress Values", "Visualization"])
     
-    # Enhanced Plotting
-    st.subheader('Fatigue Analysis Diagram')
-    fig, ax = plt.subplots(figsize=(10, 8))
+    with tab1:
+        stress_df = pd.DataFrame({
+            'Parameter': ['Max VM Stress', 'Min VM Stress', 'Alternating Stress', 
+                          'Mean Stress', 'Endurance Limit'],
+            'Value (MPa)': [
+                stresses['sigma_vm_max'],
+                stresses['sigma_vm_min'],
+                stresses['sigma_a'],
+                stresses['sigma_m'],
+                stresses['Se']
+            ]
+        })
+        st.dataframe(stress_df.style.format({"Value (MPa)": "{:.2f}"}), height=210)
+    
+    with tab2:
+        fig_stress = go.Figure()
+        fig_stress.add_trace(go.Indicator(
+            mode="number",
+            value=stresses['sigma_vm_max'],
+            title={"text": "Max VM Stress (MPa)"},
+            domain={'row': 0, 'column': 0}
+        ))
+        fig_stress.add_trace(go.Indicator(
+            mode="number",
+            value=stresses['sigma_vm_min'],
+            title={"text": "Min VM Stress (MPa)"},
+            domain={'row': 0, 'column': 1}
+        ))
+        fig_stress.add_trace(go.Indicator(
+            mode="number",
+            value=stresses['sigma_a'],
+            title={"text": "Alternating Stress (MPa)"},
+            domain={'row': 1, 'column': 0}
+        ))
+        fig_stress.add_trace(go.Indicator(
+            mode="number",
+            value=stresses['sigma_m'],
+            title={"text": "Mean Stress (MPa)"},
+            domain={'row': 1, 'column': 1}
+        ))
+        fig_stress.update_layout(
+            grid={'rows': 2, 'columns': 2, 'pattern': "independent"},
+            template='plotly_white'
+        )
+        st.plotly_chart(fig_stress, use_container_width=True)
+    
+    # Fatigue Assessment with Safety Status
+    st.subheader('🛡️ Fatigue Assessment')
+    
+    # Create cards for each criterion
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    fatigue_data = [
+        ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", "#3498db", col1),
+        ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", "#2ecc71", col2),
+        ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", "#9b59b6", col3),
+        ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", "#e74c3c", col4),
+        ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", "#f39c12", col5)
+    ]
+    
+    for name, value, equation, color, col in fatigue_data:
+        with col:
+            safe = value <= 1
+            status = "✅ Safe" if safe else "❌ Unsafe"
+            status_class = "safe" if safe else "unsafe"
+            
+            st.markdown(f"""
+            <div class="card" style="border-left: 5px solid {color};">
+                <h4 style="margin-top: 0;">{name}</h4>
+                <div style="font-size: 0.9em; color: #7f8c8d;">{equation}</div>
+                <h3>{value:.3f}</h3>
+                <div class="{status_class}">{status}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Enhanced Plotting with Plotly
+    st.subheader('📉 Fatigue Analysis Diagram')
     
     # Generate x-axis values
     x = np.linspace(0, inputs['uts']*1.1, 100)
     
-    # Plot all criteria with distinct styles
-    ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 'b-', linewidth=2.5, label='Goodman')
-    ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 'r-', linewidth=2.5, label='Soderberg')
-    ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 'g--', linewidth=2.5, label='Gerber')
-    ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 'm:', linewidth=2.5, label='Morrow')
-    ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 'c-.', linewidth=2.5, label='ASME-Elliptic')
+    # Create Plotly figure
+    fig = go.Figure()
     
-    # Plot operating point
-    ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-              color='purple', s=150, edgecolor='black',
-              label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
+    # Add criteria lines
+    fig.add_trace(go.Scatter(
+        x=x, y=stresses['Se']*(1 - x/inputs['uts']),
+        mode='lines',
+        name='Goodman',
+        line=dict(color='#3498db', width=3)
+    ))
+    fig.add_trace(go.Scatter(
+        x=x, y=stresses['Se']*(1 - x/inputs['yield_stress']),
+        mode='lines',
+        name='Soderberg',
+        line=dict(color='#2ecc71', width=3)
+    ))
+    fig.add_trace(go.Scatter(
+        x=x, y=stresses['Se']*(1 - (x/inputs['uts'])**2),
+        mode='lines',
+        name='Gerber',
+        line=dict(color='#9b59b6', width=3, dash='dash')
+    ))
+    fig.add_trace(go.Scatter(
+        x=x, y=stresses['Se']*(1 - x/stresses['sigma_f']),
+        mode='lines',
+        name='Morrow',
+        line=dict(color='#e74c3c', width=3, dash='dot')
+    ))
+    fig.add_trace(go.Scatter(
+        x=x, y=stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2),
+        mode='lines',
+        name='ASME-Elliptic',
+        line=dict(color='#f39c12', width=3, dash='dashdot')
+    ))
     
-    # Mark key points
-    ax.scatter(0, stresses['Se'], color='green', s=100, label=f'Se = {stresses["Se"]:.1f} MPa')
-    ax.scatter(inputs['uts'], 0, color='blue', s=100, label=f'UTS = {inputs["uts"]:.1f} MPa')
-    ax.scatter(inputs['yield_stress'], 0, color='red', s=100, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+    # Add operating point
+    fig.add_trace(go.Scatter(
+        x=[stresses['sigma_m']],
+        y=[stresses['sigma_a']],
+        mode='markers',
+        name=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})',
+        marker=dict(color='#2c3e50', size=12, line=dict(color='white', width=2))
+    ))
+    
+    # Add material points
+    fig.add_trace(go.Scatter(
+        x=[0],
+        y=[stresses['Se']],
+        mode='markers',
+        name=f'Se = {stresses["Se"]:.1f} MPa',
+        marker=dict(color='#27ae60', size=10)
+    ))
+    fig.add_trace(go.Scatter(
+        x=[inputs['uts']],
+        y=[0],
+        mode='markers',
+        name=f'UTS = {inputs["uts"]:.1f} MPa',
+        marker=dict(color='#2980b9', size=10)
+    ))
+    fig.add_trace(go.Scatter(
+        x=[inputs['yield_stress']],
+        y=[0],
+        mode='markers',
+        name=f'Sy = {inputs["yield_stress"]:.1f} MPa',
+        marker=dict(color='#c0392b', size=10)
+    ))
     
     # Formatting
     max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
     max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
-    ax.set_xlim(0, max_x)
-    ax.set_ylim(0, max_y)
-    ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=12)
-    ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=12)
-    ax.set_title('Fatigue Analysis Diagram with All Criteria', fontsize=14)
-    ax.grid(True, linestyle=':', alpha=0.7)
     
-    # Create custom legend
-    legend_elements = [
-        Line2D([0], [0], color='b', lw=2, label='Goodman'),
-        Line2D([0], [0], color='r', lw=2, label='Soderberg'),
-        Line2D([0], [0], color='g', linestyle='--', lw=2, label='Gerber'),
-        Line2D([0], [0], color='m', linestyle=':', lw=2, label='Morrow'),
-        Line2D([0], [0], color='c', linestyle='-.', lw=2, label='ASME-Elliptic'),
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='purple', 
-               markersize=10, markeredgecolor='black', label='Operating Point'),
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='green', 
-               markersize=8, label='Endurance Limit (Se)'),
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', 
-               markersize=8, label='Ultimate Strength (UTS)'),
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='red', 
-               markersize=8, label='Yield Strength (Sy)')
-    ]
+    fig.update_layout(
+        title='Fatigue Analysis Diagram with All Criteria',
+        xaxis_title='Mean Stress (σm) [MPa]',
+        yaxis_title='Alternating Stress (σa) [MPa]',
+        xaxis=dict(range=[0, max_x]),
+        yaxis=dict(range=[0, max_y]),
+        template='plotly_white',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        height=600,
+        margin=dict(l=50, r=50, b=80, t=80, pad=4),
+        hovermode="x unified"
+    )
     
-    ax.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=10)
-    plt.tight_layout()
-    
-    st.pyplot(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
 except ValueError as e:
-    st.error(f"Calculation error: {str(e)}")
+    st.error(f"🚨 Calculation error: {str(e)}")
 except Exception as e:
-    st.error(f"An unexpected error occurred: {str(e)}")
+    st.error(f"🚨 An unexpected error occurred: {str(e)}")
 
-# References and links
-st.subheader('References')
-st.markdown("""
-- Xian-Kui Zhu, A comparative study of burst failure models for assessing remaining strength of corroded pipelines, 
-  Journal of Pipeline Science and Engineering 1 (2021) 36-50, 
-  [DOI:10.1016/j.jpse.2021.01.008](https://doi.org/10.1016/j.jpse.2021.01.008)
-""")
+# References and links in expanders
+st.subheader('📚 References & Resources')
 
-st.subheader('Additional Resources')
+with st.expander("Research References"):
+    st.markdown("""
+    - Xian-Kui Zhu, A comparative study of burst failure models for assessing remaining strength of corroded pipelines, 
+      Journal of Pipeline Science and Engineering 1 (2021) 36-50, 
+      [DOI:10.1016/j.jpse.2021.01.008](https://doi.org/10.1016/j.jpse.2021.01.008)
+    - ASME B31G-2012: Manual for Determining the Remaining Strength of Corroded Pipelines
+    - DNV-RP-F101: Corroded Pipelines
+    """)
+
+with st.expander("Additional Resources"):
+    col_res1, col_res2 = st.columns(2)
+    with col_res1:
+        st.markdown("""
+        - [Case Study](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
+        - [Corroded Pipe Burst Data](https://docs.google.com/spreadsheets/d/1YJ7ziuc_IhU7-MMZOnRmh4h21_gf6h5Z/edit?gid=56754844#gid=56754844)
+        """)
+    with col_res2:
+        st.markdown("""
+        - [Pre-Test](https://forms.gle/wPvcgnZAC57MkCxN8)
+        - [Post-Test](https://forms.gle/FdiKqpMLzw9ENscA9)
+        """)
+
+# Footer
+st.markdown("---")
 st.markdown("""
-- [Case Study](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
-- [Corroded Pipe Burst Data](https://docs.google.com/spreadsheets/d/1YJ7ziuc_IhU7-MMZOnRmh4h21_gf6h5Z/edit?gid=56754844#gid=56754844)
-- [Pre-Test](https://forms.gle/wPvcgnZAC57MkCxN8)
-- [Post-Test](https://forms.gle/FdiKqpMLzw9ENscA9)
-""")
+<div style="text-align: center; padding: 20px; color: #7f8c8d;">
+    <p>FATIH v2.0 | Pipeline Integrity Management System | © 2023 Engineering Solutions</p>
+    <p>For technical support, contact: support@fatih-eng.com</p>
+</div>
+""", unsafe_allow_html=True)
