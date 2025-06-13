@@ -18,13 +18,13 @@ st.markdown("""
 <style>
     /* Main styling */
     .stApp {
-        background-color: #f8f9fa;
+        background-color: #0B2E22;
     }
     
     /* Titles and headers */
     h1, h2, h3 {
-        color: #2c3e50;
-        border-bottom: 2px solid #3498db;
+        color: white;
+        border-bottom: 2px solid #B8E3E9;
         padding-bottom: 0.3rem;
     }
     
