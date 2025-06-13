@@ -25,22 +25,25 @@ ACCENT_PURPLE = "#9b59b6"        # Engineering accent
 DARK_ACCENT = "#2c3e50"          # Dark accent
 LIGHT_GRAY = "#ecf0f1"           # Light background
 
-# Custom CSS for industrial styling
+# Custom CSS for industrial styling with black text
 st.markdown(f"""
 <style>
-    /* Main styling */
+    /* Main styling with black text */
+    .stApp, body, p, td, li, .stMarkdown, h1, h2, h3, h4, h5, h6 {{
+        color: #000000 !important;
+    }}
+    
     .stApp {{
         background-color: {LIGHT_GRAY};
     }}
     
     /* Titles and headers */
     h1, h2, h3 {{
-        color: {INDUSTRIAL_BLUE};
         border-bottom: 2px solid {SAFETY_BLUE};
         padding-bottom: 0.3rem;
     }}
     
-    /* Sidebar styling */
+    /* Sidebar styling - keep white text for dark background */
     [data-testid="stSidebar"] {{
         background-color: {INDUSTRIAL_BLUE};
         color: white;
@@ -48,6 +51,7 @@ st.markdown(f"""
     
     .sidebar .sidebar-content {{
         background-color: {INDUSTRIAL_BLUE};
+        color: white;
     }}
     
     /* Button styling */
@@ -79,6 +83,7 @@ st.markdown(f"""
         padding: 15px;
         margin-bottom: 15px;
         border-left: 4px solid {SAFETY_BLUE};
+        color: #000000;
     }}
     
     /* Status indicators */
@@ -104,10 +109,10 @@ st.markdown(f"""
     .value-display {{
         font-size: 1.5rem;
         font-weight: bold;
-        color: {INDUSTRIAL_BLUE};
+        color: #000000;
     }}
     
-    /* Section headers */
+    /* Section headers - keep white text for dark background */
     .section-header {{
         background-color: {STEEL_GRAY};
         color: white;
@@ -124,6 +129,7 @@ st.markdown(f"""
         padding: 15px;
         margin-bottom: 15px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        color: #000000;
     }}
     
     /* Industrial progress bars */
@@ -197,7 +203,7 @@ with col1:
 with col2:
     st.markdown(f"""
     <div class="material-card">
-        <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 2px solid {SAFETY_BLUE}; padding-bottom: 5px;">Assessment Protocol</h4>
+        <h4 style="border-bottom: 2px solid {SAFETY_BLUE}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
@@ -209,7 +215,7 @@ with col2:
         <div class="progress-container">
             <div class="progress-bar" style="width: {'50%' if st.session_state.get('run_analysis', False) else '10%'};"></div>
         </div>
-        <p style="text-align: right; color:{STEEL_GRAY}; margin:0;">Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}</p>
+        <p style="text-align: right; margin:0;">Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -330,7 +336,7 @@ if st.session_state.get('run_analysis', False):
             with burst_cols[i]:
                 st.markdown(f"""
                 <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
+                    <h4 style="margin-top: 0;">{name}</h4>
                     <div class="value-display">{value:.2f} MPa</div>
                     <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
                         <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
@@ -350,7 +356,7 @@ if st.session_state.get('run_analysis', False):
         with stress_col1:
             st.markdown(f"""
             <div class="material-card">
-                <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 1px solid {STEEL_GRAY}; padding-bottom: 5px;">Stress Parameters</h4>
+                <h4>Stress Parameters</h4>
                 <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">Max VM Stress</td>
@@ -396,7 +402,7 @@ if st.session_state.get('run_analysis', False):
                         ha='center', va='bottom', fontsize=9)
             
             ax.set_ylim(0, max(values) * 1.2)
-            ax.set_title('Stress Distribution', fontsize=10, color=INDUSTRIAL_BLUE)
+            ax.set_title('Stress Distribution', fontsize=10)
             ax.grid(axis='y', linestyle='--', alpha=0.7)
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
@@ -427,8 +433,8 @@ if st.session_state.get('run_analysis', False):
                 
                 st.markdown(f"""
                 <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
-                    <div style="font-size: 0.85em; color: {STEEL_GRAY}; margin-bottom: 10px;">{equation}</div>
+                    <h4 style="margin-top: 0;">{name}</h4>
+                    <div style="font-size: 0.85em; margin-bottom: 10px;">{equation}</div>
                     <div class="value-display">{value:.3f}</div>
                     <div class="{status_class}" style="margin-top: 10px;">{status}</div>
                     <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
@@ -471,9 +477,9 @@ if st.session_state.get('run_analysis', False):
         max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
         ax.set_xlim(0, max_x)
         ax.set_ylim(0, max_y)
-        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=INDUSTRIAL_BLUE)
-        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10, color=INDUSTRIAL_BLUE)
-        ax.set_title('Fatigue Analysis Diagram', fontsize=12, color=INDUSTRIAL_BLUE, fontweight='bold')
+        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10)
+        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10)
+        ax.set_title('Fatigue Analysis Diagram', fontsize=12, fontweight='bold')
         ax.grid(True, linestyle='--', alpha=0.7)
         ax.set_facecolor(LIGHT_GRAY)
         
@@ -490,8 +496,8 @@ if st.session_state.get('run_analysis', False):
 else:
     st.markdown(f"""
     <div class="material-card">
-        <h4 style="color:{INDUSTRIAL_BLUE}; text-align: center;">⏳ Ready for Analysis</h4>
-        <p style="text-align: center; color:{STEEL_GRAY};">
+        <h4 style="text-align: center;">⏳ Ready for Analysis</h4>
+        <p style="text-align: center;">
             Enter parameters in the sidebar and click 'Run Analysis' to start
         </p>
         <div class="progress-container">
