@@ -35,19 +35,19 @@ st.markdown(f"""
     
     /* Titles and headers */
     h1, h2, h3 {{
-        color: {INDUSTRIAL_BLUE};
+        color: {STEEL_GRAY};
         border-bottom: 2px solid {SAFETY_BLUE};
         padding-bottom: 0.3rem;
     }}
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {{
-        background-color: {INDUSTRIAL_BLUE};
+        background-color: {STEEL_GRAY};
         color: white;
     }}
     
     .sidebar .sidebar-content {{
-        background-color: {INDUSTRIAL_BLUE};
+        background-color: {STEEL_GRAY};
     }}
     
     /* Button styling */
@@ -104,7 +104,7 @@ st.markdown(f"""
     .value-display {{
         font-size: 1.5rem;
         font-weight: bold;
-        color: {INDUSTRIAL_BLUE};
+        color: {STEEL_GRAY};
     }}
     
     /* Section headers */
@@ -144,7 +144,7 @@ st.markdown(f"""
 
 # App header with industrial theme
 st.markdown(f"""
-<div style="background-color:{INDUSTRIAL_BLUE}; padding:20px; border-radius:5px; margin-bottom:20px;">
+<div style="background-color:{STEEL_GRAY}; padding:20px; border-radius:5px; margin-bottom:20px;">
     <h1 style="color:white; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
     <p style="color:#bdc3c7;">Pipeline Integrity Management System for Energy Sector</p>
 </div>
@@ -197,7 +197,7 @@ with col1:
 with col2:
     st.markdown(f"""
     <div class="material-card">
-        <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 2px solid {SAFETY_BLUE}; padding-bottom: 5px;">Assessment Protocol</h4>
+        <h4 style="color:{STEEL_GRAY}; border-bottom: 2px solid {SAFETY_BLUE}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
@@ -330,7 +330,7 @@ if st.session_state.get('run_analysis', False):
             with burst_cols[i]:
                 st.markdown(f"""
                 <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
+                    <h4 style="margin-top: 0; color:{STEEL_GRAY};">{name}</h4>
                     <div class="value-display">{value:.2f} MPa</div>
                     <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
                         <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
@@ -350,7 +350,7 @@ if st.session_state.get('run_analysis', False):
         with stress_col1:
             st.markdown(f"""
             <div class="material-card">
-                <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 1px solid {STEEL_GRAY}; padding-bottom: 5px;">Stress Parameters</h4>
+                <h4 style="color:{STEEL_GRAY}; border-bottom: 1px solid {STEEL_GRAY}; padding-bottom: 5px;">Stress Parameters</h4>
                 <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">Max VM Stress</td>
@@ -396,7 +396,7 @@ if st.session_state.get('run_analysis', False):
                         ha='center', va='bottom', fontsize=9)
             
             ax.set_ylim(0, max(values) * 1.2)
-            ax.set_title('Stress Distribution', fontsize=10, color=INDUSTRIAL_BLUE)
+            ax.set_title('Stress Distribution', fontsize=10, color=STEEL_GRAY)
             ax.grid(axis='y', linestyle='--', alpha=0.7)
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
@@ -427,7 +427,7 @@ if st.session_state.get('run_analysis', False):
                 
                 st.markdown(f"""
                 <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
+                    <h4 style="margin-top: 0; color:{STEEL_GRAY};">{name}</h4>
                     <div style="font-size: 0.85em; color: {STEEL_GRAY}; margin-bottom: 10px;">{equation}</div>
                     <div class="value-display">{value:.3f}</div>
                     <div class="{status_class}" style="margin-top: 10px;">{status}</div>
