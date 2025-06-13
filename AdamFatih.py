@@ -13,6 +13,17 @@ st.set_page_config(
     page_icon="⚙️"
 )
 
+# Color palette with distinct colors for diagrams
+COLORS = {
+    'Goodman': '#1f77b4',     # Blue
+    'Soderberg': '#ff7f0e',   # Orange
+    'Gerber': '#2ca02c',      # Green
+    'Morrow': '#d62728',      # Red
+    'ASME-Elliptic': '#9467bd', # Purple
+    'OperatingPoint': '#e377c2', # Pink
+    'KeyPoints': '#7f7f7f'    # Gray
+}
+
 # Black and white color palette with high contrast
 BLACK = "#000000"
 DARK_GRAY = "#333333"
@@ -157,6 +168,13 @@ st.markdown(f"""
         border-radius: 4px;
         padding: 10px;
     }}
+    
+    /* Sidebar expander headers */
+    .sidebar .stExpander > label {{
+        color: {WHITE} !important;
+        font-weight: bold !important;
+        text-shadow: 0px 0px 3px rgba(255,255,255,0.5);
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -168,11 +186,11 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar with high contrast scheme
+# Sidebar with improved contrast headers
 with st.sidebar:
     st.markdown(f"""
     <div style="background-color:{BLACK}; padding:10px; border-radius:4px; margin-bottom:15px;">
-        <h3 style="color:{WHITE}; margin:0;">Pipeline Parameters</h3>
+        <h3 style="color:{WHITE}; margin:0; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">Pipeline Parameters</h3>
     </div>
     """, unsafe_allow_html=True)
     
@@ -467,22 +485,30 @@ if st.session_state.get('run_analysis', False):
         # Generate x-axis values
         x = np.linspace(0, inputs['uts']*1.1, 100)
         
-        # Plot all criteria with distinct styles
-        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), color=BLACK, linewidth=2, label='Goodman')
-        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), color=MEDIUM_GRAY, linewidth=2, label='Soderberg')
-        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), color=DARK_GRAY, linestyle='--', linewidth=2, label='Gerber')
-        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), color=ACCENT, linestyle=':', linewidth=2, label='Morrow')
-        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), color=BLACK, linestyle='-.', linewidth=2, label='ASME-Elliptic')
+        # Plot all criteria with distinct colors
+        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 
+                color=COLORS['Goodman'], linewidth=2.5, label='Goodman')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 
+                color=COLORS['Soderberg'], linewidth=2.5, label='Soderberg')
+        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 
+                color=COLORS['Gerber'], linestyle='--', linewidth=2.5, label='Gerber')
+        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 
+                color=COLORS['Morrow'], linestyle=':', linewidth=2.5, label='Morrow')
+        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 
+                color=COLORS['ASME-Elliptic'], linestyle='-.', linewidth=2.5, label='ASME-Elliptic')
         
-        # Plot operating point
+        # Plot operating point with distinct color
         ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-                  color=BLACK, s=120, edgecolor='white', zorder=10,
+                  color=COLORS['OperatingPoint'], s=150, edgecolor='black', zorder=10,
                   label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
         
-        # Mark key points
-        ax.scatter(0, stresses['Se'], color=MEDIUM_GRAY, s=80, label=f'Se = {stresses["Se"]:.1f} MPa')
-        ax.scatter(inputs['uts'], 0, color=BLACK, s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
-        ax.scatter(inputs['yield_stress'], 0, color=DARK_GRAY, s=80, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+        # Mark key points with consistent color
+        ax.scatter(0, stresses['Se'], color=COLORS['KeyPoints'], s=100, 
+                  label=f'Se = {stresses["Se"]:.1f} MPa')
+        ax.scatter(inputs['uts'], 0, color=COLORS['KeyPoints'], s=100, 
+                  label=f'UTS = {inputs["uts"]:.1f} MPa')
+        ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, 
+                  label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
         
         # Formatting
         max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
