@@ -9,145 +9,207 @@ from matplotlib.lines import Line2D
 # Configuration
 st.set_page_config(
     layout="wide",
-    page_title="FATIH - Fatigue Assessment Tool for Integrity & Health",
-    page_icon="🔧"
+    page_title="FATIH - Industrial Fatigue Assessment",
+    page_icon="⚙️"
 )
 
-# Custom CSS for professional styling
-st.markdown("""
+# Industrial color palette
+INDUSTRIAL_BLUE = "#2c3e50"      # Deep steel blue
+SAFETY_BLUE = "#3498db"          # Safety blue
+STEEL_GRAY = "#7f8c8d"           # Steel gray
+SAFETY_GREEN = "#27ae60"         # Safety green
+SAFETY_RED = "#e74c3c"           # Safety red
+SAFETY_ORANGE = "#f39c12"        # Safety orange
+PIPE_COLOR = "#95a5a6"           # Pipe metal color
+ACCENT_PURPLE = "#9b59b6"        # Engineering accent
+DARK_ACCENT = "#2c3e50"          # Dark accent
+LIGHT_GRAY = "#ecf0f1"           # Light background
+
+# Custom CSS for industrial styling
+st.markdown(f"""
 <style>
     /* Main styling */
-    .stApp {
-        background-color: #0B2E22;
-    }
+    .stApp {{
+        background-color: {LIGHT_GRAY};
+    }}
     
     /* Titles and headers */
-    h1, h2, h3 {
-        color: white;
-        border-bottom: 2px solid #B8E3E9;
+    h1, h2, h3 {{
+        color: {INDUSTRIAL_BLUE};
+        border-bottom: 2px solid {SAFETY_BLUE};
         padding-bottom: 0.3rem;
-    }
+    }}
     
     /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #2c3e50;
+    [data-testid="stSidebar"] {{
+        background-color: {INDUSTRIAL_BLUE};
         color: white;
-    }
+    }}
     
-    .sidebar .sidebar-content {
-        background-color: #2c3e50;
-    }
+    .sidebar .sidebar-content {{
+        background-color: {INDUSTRIAL_BLUE};
+    }}
     
     /* Button styling */
-    .stButton>button {
-        background-color: #3498db;
+    .stButton>button {{
+        background-color: {SAFETY_BLUE};
         color: white;
         border-radius: 4px;
         border: none;
         font-weight: bold;
         padding: 0.5rem 1rem;
-    }
+    }}
     
-    .stButton>button:hover {
+    .stButton>button:hover {{
         background-color: #2980b9;
         color: white;
-    }
+    }}
     
     /* Dataframe styling */
-    .dataframe {
-        border: 1px solid #3498db;
+    .dataframe {{
+        border: 1px solid {SAFETY_BLUE};
         border-radius: 5px;
-    }
+    }}
     
     /* Card styling */
-    .card {
+    .card {{
         background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         padding: 15px;
-        margin-bottom: 20px;
-    }
+        margin-bottom: 15px;
+        border-left: 4px solid {SAFETY_BLUE};
+    }}
     
     /* Status indicators */
-    .safe {
-        color: #27ae60;
+    .safe {{
+        color: {SAFETY_GREEN};
         font-weight: bold;
-    }
+    }}
     
-    .unsafe {
-        color: #e74c3c;
+    .unsafe {{
+        color: {SAFETY_RED};
         font-weight: bold;
-    }
+    }}
     
     /* Grid layout */
-    .grid-container {
+    .grid-container {{
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
         margin-bottom: 20px;
-    }
+    }}
     
     /* Value display */
-    .value-display {
+    .value-display {{
         font-size: 1.5rem;
         font-weight: bold;
-        color: #2c3e50;
-    }
+        color: {INDUSTRIAL_BLUE};
+    }}
+    
+    /* Section headers */
+    .section-header {{
+        background-color: {STEEL_GRAY};
+        color: white;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 20px;
+    }}
+    
+    /* Material design elements */
+    .material-card {{
+        background: linear-gradient(145deg, #ffffff, #f2f2f2);
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }}
+    
+    /* Industrial progress bars */
+    .progress-container {{
+        height: 8px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        margin: 10px 0;
+        overflow: hidden;
+    }}
+    
+    .progress-bar {{
+        height: 100%;
+        background-color: {SAFETY_BLUE};
+    }}
 </style>
 """, unsafe_allow_html=True)
 
 # App header with industrial theme
-st.title("🔧 FATIH - Fatigue Assessment Tool for Integrity & Health")
-st.markdown("### Industrial Pipeline Integrity Management System")
+st.markdown(f"""
+<div style="background-color:{INDUSTRIAL_BLUE}; padding:20px; border-radius:5px; margin-bottom:20px;">
+    <h1 style="color:white; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
+    <p style="color:#bdc3c7;">Pipeline Integrity Management System for Energy Sector</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Sidebar with industrial color scheme
 with st.sidebar:
-    st.header('⚙️ Pipeline Parameters', divider='blue')
-    st.subheader('Dimensional Parameters')
+    st.markdown(f"""
+    <div style="background-color:{DARK_ACCENT}; padding:10px; border-radius:4px; margin-bottom:15px;">
+        <h3 style="color:white; margin:0;">Pipeline Parameters</h3>
+    </div>
+    """, unsafe_allow_html=True)
     
-    inputs = {
-        'pipe_thickness': st.number_input('Pipe Thickness, t (mm)', min_value=0.1, value=10.0),
-        'pipe_diameter': st.number_input('Pipe Diameter, D (mm)', min_value=0.1, value=200.0),
-        'pipe_length': st.number_input('Pipe Length, L (mm)', min_value=0.1, value=1000.0),
-        'corrosion_length': st.number_input('Corrosion Length, Lc (mm)', min_value=0.0, value=50.0),
-        'corrosion_depth': st.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, max_value=10.0, value=2.0)
-    }
+    with st.expander("📏 Dimensional Parameters", expanded=True):
+        inputs = {
+            'pipe_thickness': st.number_input('Pipe Thickness, t (mm)', min_value=0.1, value=10.0),
+            'pipe_diameter': st.number_input('Pipe Diameter, D (mm)', min_value=0.1, value=200.0),
+            'pipe_length': st.number_input('Pipe Length, L (mm)', min_value=0.1, value=1000.0),
+            'corrosion_length': st.number_input('Corrosion Length, Lc (mm)', min_value=0.0, value=50.0),
+            'corrosion_depth': st.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, max_value=10.0, value=2.0)
+        }
     
-    st.subheader('Material Properties')
-    inputs['yield_stress'] = st.number_input('Yield Stress, Sy (MPa)', min_value=0.1, value=300.0)
-    inputs['uts'] = st.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, value=400.0)
+    with st.expander("🧱 Material Properties", expanded=True):
+        inputs['yield_stress'] = st.number_input('Yield Stress, Sy (MPa)', min_value=0.1, value=300.0)
+        inputs['uts'] = st.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, value=400.0)
     
-    st.subheader('Operating Conditions')
-    inputs['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 10)
-    inputs['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 5)
+    with st.expander("📊 Operating Conditions", expanded=True):
+        inputs['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 10)
+        inputs['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 5)
     
     st.markdown("---")
-    st.markdown("**Safety Factors**")
-    st.info("""
-    - Safe: ✅ (Value ≤ 1)
-    - Unsafe: ❌ (Value > 1)
-    """)
-    if st.button('Run Analysis', use_container_width=True):
+    st.markdown(f"""
+    <div style="background-color:{DARK_ACCENT}; padding:10px; border-radius:4px; margin-top:15px;">
+        <h4 style="color:white; margin:0;">Safety Indicators</h4>
+        <p style="color:#bdc3c7; margin:0;">✅ Safe: Value ≤ 1<br>❌ Unsafe: Value > 1</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button('Run Analysis', use_container_width=True, type="primary"):
         st.session_state.run_analysis = True
+    if st.button('Reset Values', use_container_width=True):
+        st.session_state.run_analysis = False
 
-# Image display
+# Image and intro section
 st.subheader('Pipeline Configuration')
 col1, col2 = st.columns([1, 2])
 with col1:
     st.image("https://www.researchgate.net/profile/Changqing-Gong/publication/313456917/figure/fig1/AS:573308992266241@1513698923813/Schematic-illustration-of-the-geometry-of-a-typical-corrosion-defect.png", 
              caption="Fig. 1: Corrosion defect geometry")
 with col2:
-    st.markdown("""
-    <div class="card">
-        <h4>Assessment Guidelines</h4>
-        <ul>
+    st.markdown(f"""
+    <div class="material-card">
+        <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 2px solid {SAFETY_BLUE}; padding-bottom: 5px;">Assessment Protocol</h4>
+        <ol>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
-            <li>Click "Run Analysis" in sidebar</li>
+            <li>Click "Run Analysis" to perform assessment</li>
             <li>Review burst pressure calculations</li>
             <li>Analyze stress and fatigue results</li>
             <li>Check safety status for all criteria</li>
-        </ul>
+        </ol>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: {'50%' if st.session_state.get('run_analysis', False) else '10%'};"></div>
+        </div>
+        <p style="text-align: right; color:{STEEL_GRAY}; margin:0;">Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -249,67 +311,70 @@ if st.session_state.get('run_analysis', False):
         )
         
         # Burst Pressure Results in Card Layout
-        st.subheader('📊 Burst Pressure Assessment')
-        st.markdown('<div class="grid-container">', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="section-header">
+            <h3 style="color:white; margin:0;">📊 Burst Pressure Assessment</h3>
+        </div>
+        """, unsafe_allow_html=True)
         
+        burst_cols = st.columns(5)
         burst_data = [
-            ("Von Mises", pressures['P_vm'], "#3498db"),
-            ("Tresca", pressures['P_tresca'], "#2ecc71"),
-            ("ASME B31G", pressures['P_asme'], "#9b59b6"),
-            ("DNV", pressures['P_dnv'], "#e74c3c"),
-            ("PCORRC", pressures['P_pcorrc'], "#f39c12")
+            ("Von Mises", pressures['P_vm'], SAFETY_BLUE),
+            ("Tresca", pressures['P_tresca'], SAFETY_GREEN),
+            ("ASME B31G", pressures['P_asme'], ACCENT_PURPLE),
+            ("DNV", pressures['P_dnv'], SAFETY_RED),
+            ("PCORRC", pressures['P_pcorrc'], SAFETY_ORANGE)
         ]
         
-        cols = st.columns(5)
         for i, (name, value, color) in enumerate(burst_data):
-            with cols[i]:
+            with burst_cols[i]:
                 st.markdown(f"""
-                <div class="card" style="border-left: 5px solid {color};">
-                    <h4 style="margin-top: 0;">{name}</h4>
+                <div class="card" style="border-left: 4px solid {color};">
+                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
                     <div class="value-display">{value:.2f} MPa</div>
+                    <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
+                        <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown('</div>', unsafe_allow_html=True)
-        
         # Stress Analysis
-        st.subheader('📈 Stress Analysis')
-        stress_col1, stress_col2 = st.columns(2)
+        st.markdown(f"""
+        <div class="section-header">
+            <h3 style="color:white; margin:0;">📈 Stress Analysis</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        stress_col1, stress_col2 = st.columns([1, 1])
         
         with stress_col1:
-            st.markdown("""
-            <div class="card">
-                <h4>Stress Parameters</h4>
-                <table style="width:100%; border-collapse: collapse;">
+            st.markdown(f"""
+            <div class="material-card">
+                <h4 style="color:{INDUSTRIAL_BLUE}; border-bottom: 1px solid {STEEL_GRAY}; padding-bottom: 5px;">Stress Parameters</h4>
+                <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">Max VM Stress</td>
-                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_max']:.2f} MPa</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">Min VM Stress</td>
-                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_min']:.2f} MPa</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">Alternating Stress</td>
-                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_a']:.2f} MPa</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">Mean Stress</td>
-                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_m']:.2f} MPa</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px;">Endurance Limit</td>
-                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['Se']:.2f} MPa</td>
                     </tr>
                 </table>
             </div>
-            """.format(
-                stresses['sigma_vm_max'],
-                stresses['sigma_vm_min'],
-                stresses['sigma_a'],
-                stresses['sigma_m'],
-                stresses['Se']
-            ), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
         
         with stress_col2:
             # Simple stress visualization
@@ -320,45 +385,64 @@ if st.session_state.get('run_analysis', False):
                 stresses['sigma_vm_min'],
                 stresses['sigma_a']
             ]
-            colors = ['#3498db', '#2ecc71', '#9b59b6']
-            ax.bar(categories, values, color=colors)
-            ax.set_title('Stress Distribution', fontsize=12)
+            colors = [SAFETY_BLUE, STEEL_GRAY, ACCENT_PURPLE]
+            bars = ax.bar(categories, values, color=colors)
+            
+            # Add value labels
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.1f} MPa',
+                        ha='center', va='bottom', fontsize=9)
+            
+            ax.set_ylim(0, max(values) * 1.2)
+            ax.set_title('Stress Distribution', fontsize=10, color=INDUSTRIAL_BLUE)
             ax.grid(axis='y', linestyle='--', alpha=0.7)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
             plt.tight_layout()
             st.pyplot(fig)
         
         # Fatigue Assessment with Safety Status
-        st.subheader('🛡️ Fatigue Assessment')
-        st.markdown('<div class="grid-container">', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="section-header">
+            <h3 style="color:white; margin:0;">🛡️ Fatigue Assessment</h3>
+        </div>
+        """, unsafe_allow_html=True)
         
+        fatigue_cols = st.columns(5)
         fatigue_data = [
-            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", "#3498db"),
-            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", "#2ecc71"),
-            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", "#9b59b6"),
-            ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", "#e74c3c"),
-            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", "#f39c12")
+            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", SAFETY_BLUE),
+            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", SAFETY_GREEN),
+            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", ACCENT_PURPLE),
+            ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", SAFETY_RED),
+            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", SAFETY_ORANGE)
         ]
         
-        cols = st.columns(5)
         for i, (name, value, equation, color) in enumerate(fatigue_data):
-            with cols[i]:
+            with fatigue_cols[i]:
                 safe = value <= 1
                 status = "✅ Safe" if safe else "❌ Unsafe"
                 status_class = "safe" if safe else "unsafe"
                 
                 st.markdown(f"""
-                <div class="card" style="border-left: 5px solid {color};">
-                    <h4 style="margin-top: 0;">{name}</h4>
-                    <div style="font-size: 0.9em; color: #7f8c8d;">{equation}</div>
+                <div class="card" style="border-left: 4px solid {color};">
+                    <h4 style="margin-top: 0; color:{INDUSTRIAL_BLUE};">{name}</h4>
+                    <div style="font-size: 0.85em; color: {STEEL_GRAY}; margin-bottom: 10px;">{equation}</div>
                     <div class="value-display">{value:.3f}</div>
-                    <div class="{status_class}">{status}</div>
+                    <div class="{status_class}" style="margin-top: 10px;">{status}</div>
+                    <div style="height: 4px; background: #ecf0f1; margin: 10px 0;">
+                        <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown('</div>', unsafe_allow_html=True)
-        
         # Enhanced Plotting with Matplotlib
-        st.subheader('📉 Fatigue Analysis Diagram')
+        st.markdown(f"""
+        <div class="section-header">
+            <h3 style="color:white; margin:0;">📉 Fatigue Analysis Diagram</h3>
+        </div>
+        """, unsafe_allow_html=True)
         
         fig, ax = plt.subplots(figsize=(10, 6))
         
@@ -366,34 +450,35 @@ if st.session_state.get('run_analysis', False):
         x = np.linspace(0, inputs['uts']*1.1, 100)
         
         # Plot all criteria with distinct styles
-        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 'b-', linewidth=2, label='Goodman')
-        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 'r-', linewidth=2, label='Soderberg')
-        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 'g--', linewidth=2, label='Gerber')
-        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 'm:', linewidth=2, label='Morrow')
-        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 'c-.', linewidth=2, label='ASME-Elliptic')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), color=SAFETY_BLUE, linewidth=2, label='Goodman')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), color=SAFETY_GREEN, linewidth=2, label='Soderberg')
+        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), color=ACCENT_PURPLE, linestyle='--', linewidth=2, label='Gerber')
+        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), color=SAFETY_RED, linestyle=':', linewidth=2, label='Morrow')
+        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), color=SAFETY_ORANGE, linestyle='-.', linewidth=2, label='ASME-Elliptic')
         
         # Plot operating point
         ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-                  color='purple', s=120, edgecolor='black', zorder=10,
+                  color=INDUSTRIAL_BLUE, s=120, edgecolor='white', zorder=10,
                   label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
         
         # Mark key points
-        ax.scatter(0, stresses['Se'], color='green', s=80, label=f'Se = {stresses["Se"]:.1f} MPa')
-        ax.scatter(inputs['uts'], 0, color='blue', s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
-        ax.scatter(inputs['yield_stress'], 0, color='red', s=80, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+        ax.scatter(0, stresses['Se'], color=SAFETY_GREEN, s=80, label=f'Se = {stresses["Se"]:.1f} MPa')
+        ax.scatter(inputs['uts'], 0, color=SAFETY_BLUE, s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
+        ax.scatter(inputs['yield_stress'], 0, color=SAFETY_RED, s=80, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
         
         # Formatting
         max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
         max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
         ax.set_xlim(0, max_x)
         ax.set_ylim(0, max_y)
-        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10)
-        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10)
-        ax.set_title('Fatigue Analysis Diagram', fontsize=12)
+        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=INDUSTRIAL_BLUE)
+        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10, color=INDUSTRIAL_BLUE)
+        ax.set_title('Fatigue Analysis Diagram', fontsize=12, color=INDUSTRIAL_BLUE, fontweight='bold')
         ax.grid(True, linestyle='--', alpha=0.7)
+        ax.set_facecolor(LIGHT_GRAY)
         
         # Create custom legend
-        ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1), fontsize=9)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.35, 1), fontsize=9)
         plt.tight_layout()
         
         st.pyplot(fig)
@@ -403,38 +488,63 @@ if st.session_state.get('run_analysis', False):
     except Exception as e:
         st.error(f"🚨 An unexpected error occurred: {str(e)}")
 else:
-    st.info("💡 Enter parameters in the sidebar and click 'Run Analysis' to start")
+    st.markdown(f"""
+    <div class="material-card">
+        <h4 style="color:{INDUSTRIAL_BLUE}; text-align: center;">⏳ Ready for Analysis</h4>
+        <p style="text-align: center; color:{STEEL_GRAY};">
+            Enter parameters in the sidebar and click 'Run Analysis' to start
+        </p>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 30%;"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # References and links in expanders
-st.subheader('📚 References & Resources')
+st.markdown(f"""
+<div class="section-header">
+    <h3 style="color:white; margin:0;">📚 References & Resources</h3>
+</div>
+""", unsafe_allow_html=True)
 
-with st.expander("Research References"):
-    st.markdown("""
-    - Xian-Kui Zhu, A comparative study of burst failure models for assessing remaining strength of corroded pipelines, 
-      Journal of Pipeline Science and Engineering 1 (2021) 36-50, 
-      [DOI:10.1016/j.jpse.2021.01.008](https://doi.org/10.1016/j.jpse.2021.01.008)
-    - ASME B31G-2012: Manual for Determining the Remaining Strength of Corroded Pipelines
-    - DNV-RP-F101: Corroded Pipelines
-    """)
-
-with st.expander("Additional Resources"):
-    col_res1, col_res2 = st.columns(2)
-    with col_res1:
+ref_col1, ref_col2 = st.columns([1, 1])
+with ref_col1:
+    with st.expander("Research References", expanded=True):
         st.markdown("""
-        - [Case Study](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
-        - [Corroded Pipe Burst Data](https://docs.google.com/spreadsheets/d/1YJ7ziuc_IhU7-MMZOnRmh4h21_gf6h5Z/edit?gid=56754844#gid=56754844)
+        - **Xian-Kui Zhu** (2021)  
+          *Journal of Pipeline Science and Engineering*  
+          Comparative study of burst failure models for corroded pipelines  
+          [DOI:10.1016/j.jpse.2021.01.008](https://doi.org/10.1016/j.jpse.2021.01.008)
+        
+        - **ASME B31G-2012**  
+          Manual for Determining the Remaining Strength of Corroded Pipelines
+        
+        - **DNV-RP-F101**  
+          Corroded Pipelines Standard
         """)
-    with col_res2:
+
+with ref_col2:
+    with st.expander("Additional Resources", expanded=True):
         st.markdown("""
-        - [Pre-Test](https://forms.gle/wPvcgnZAC57MkCxN8)
-        - [Post-Test](https://forms.gle/FdiKqpMLzw9ENscA9)
+        - [Case Study: Pipeline Failure Analysis](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
+        - [Corroded Pipe Burst Database](https://docs.google.com/spreadsheets/d/1YJ7ziuc_IhU7-MMZOnRmh4h21_gf6h5Z/edit?gid=56754844#gid=56754844)
+        - [Pre-Assessment Questionnaire](https://forms.gle/wPvcgnZAC57MkCxN8)
+        - [Post-Assessment Feedback](https://forms.gle/FdiKqpMLzw9ENscA9)
         """)
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div style="text-align: center; padding: 20px; color: #7f8c8d;">
-    <p>FATIH v2.0 | Pipeline Integrity Management System | © 2023 Engineering Solutions</p>
-    <p>For technical support, contact: support@fatih-eng.com</p>
+st.markdown(f"""
+<div style="background-color:{INDUSTRIAL_BLUE}; padding:20px; border-radius:5px; margin-top:20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; color:white;">
+        <div>
+            <h4 style="margin:0; color:white;">FATIH v2.0 | Industrial Pipeline Integrity System</h4>
+            <p style="margin:0; color:#bdc3c7;">© 2023 Engineering Solutions Ltd.</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin:0; color:#bdc3c7;">Technical Support: support@fatih-eng.com</p>
+            <p style="margin:0; color:#bdc3c7;">Phone: +1 (800) 555-ENGI</p>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
