@@ -4,11 +4,10 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from PIL import Image
+from matplotlib.lines import Line2D
 
-#Configuration
+# Configuration
 st.set_page_config(layout="wide")
-
-# Header
 st.title("Assessment & Diagnostics for Aging Materials Fatigue Assessment Tool for Integrity and Health")
 
 # Sidebar inputs
@@ -73,7 +72,7 @@ def calculate_pressures(inputs):
         'P_pcorrc': P_pcorrc
     }
 
-def calculate_stresses(inputs, pressures):
+def calculate_stresses(inputs):
     t = inputs['pipe_thickness']
     D = inputs['pipe_diameter']
     Pop_max = inputs['max_pressure']
@@ -101,13 +100,7 @@ def calculate_stresses(inputs, pressures):
     sigma_a = (sigma_vm_max - sigma_vm_min) / 2
     sigma_m = (sigma_vm_max + sigma_vm_min) / 2
     Se = 0.5 * UTS
-    sigma_f = UTS + 345
-    
-    # Fatigue criteria
-    goodman = (sigma_a / Se) + (sigma_m / UTS)
-    soderberg = (sigma_a / Se) + (sigma_m / Sy)
-    gerber = (sigma_a / Se) + (sigma_m / UTS)**2
-    morrow_allowable = Se * (1 - sigma_m / sigma_f)
+    sigma_f = UTS + 345  # Morrow's fatigue strength coefficient
     
     return {
         'sigma_vm_max': sigma_vm_max,
@@ -115,89 +108,143 @@ def calculate_stresses(inputs, pressures):
         'sigma_a': sigma_a,
         'sigma_m': sigma_m,
         'Se': Se,
-        'goodman': goodman,
-        'soderberg': soderberg,
-        'gerber': gerber,
-        'morrow_allowable': morrow_allowable
+        'sigma_f': sigma_f
     }
 
-# Perform calculations
+def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
+    return {
+        'Goodman': (sigma_a / Se) + (sigma_m / UTS),
+        'Soderberg': (sigma_a / Se) + (sigma_m / Sy),
+        'Gerber': (sigma_a / Se) + (sigma_m / UTS)**2,
+        'Morrow': (sigma_a / Se) + (sigma_m / sigma_f),
+        'ASME-Elliptic': np.sqrt((sigma_a / Se)**2 + (sigma_m / Sy)**2)
+    }
+
+# Perform calculations and display results
 try:
+    # Calculate all parameters
     pressures = calculate_pressures(inputs)
-    stresses = calculate_stresses(inputs, pressures)
+    stresses = calculate_stresses(inputs)
+    fatigue = calculate_fatigue_criteria(
+        stresses['sigma_a'], stresses['sigma_m'],
+        stresses['Se'], inputs['uts'], inputs['yield_stress'],
+        stresses['sigma_f']
+    )
     
     # Display results
     st.subheader('Input Parameters')
     st.dataframe(pd.DataFrame.from_dict(inputs, orient='index', columns=['Value']))
     
     st.subheader('Burst Pressure Calculations')
-    pressure_df = pd.DataFrame.from_dict(pressures, orient='index', columns=['MPa'])
-    st.dataframe(pressure_df.style.format("{:.2f}"))
+    pressure_df = pd.DataFrame({
+        'Model': ['Von Mises', 'Tresca', 'ASME B31G', 'DNV', 'PCORRC'],
+        'Pressure (MPa)': [
+            pressures['P_vm'],
+            pressures['P_tresca'],
+            pressures['P_asme'],
+            pressures['P_dnv'],
+            pressures['P_pcorrc']
+        ]
+    })
+    st.dataframe(pressure_df.style.format({"Pressure (MPa)": "{:.2f}"}))
     
     st.subheader('Stress Analysis')
     stress_df = pd.DataFrame({
         'Parameter': ['Max VM Stress', 'Min VM Stress', 'Alternating Stress', 'Mean Stress', 'Endurance Limit'],
-        'Value (MPa)': [stresses['sigma_vm_max'], stresses['sigma_vm_min'], 
-                        stresses['sigma_a'], stresses['sigma_m'], stresses['Se']]
+        'Value (MPa)': [
+            stresses['sigma_vm_max'],
+            stresses['sigma_vm_min'],
+            stresses['sigma_a'],
+            stresses['sigma_m'],
+            stresses['Se']
+        ]
     })
     st.dataframe(stress_df.style.format({"Value (MPa)": "{:.2f}"}))
     
     st.subheader('Fatigue Assessment')
     fatigue_df = pd.DataFrame({
-        'Criterion': ['Goodman', 'Soderberg', 'Gerber', 'Morrow Allowable'],
-        'Value': [stresses['goodman'], stresses['soderberg'], 
-                 stresses['gerber'], stresses['morrow_allowable']],
-        'Safe': [stresses['goodman'] <= 1, stresses['soderberg'] <= 1,
-                stresses['gerber'] <= 1, stresses['sigma_a'] <= stresses['morrow_allowable']]
+        'Criterion': ['Goodman', 'Soderberg', 'Gerber', 'Morrow', 'ASME-Elliptic'],
+        'Equation': [
+            'σa/Se + σm/UTS = 1',
+            'σa/Se + σm/Sy = 1',
+            'σa/Se + (σm/UTS)² = 1',
+            'σa/Se + σm/(UTS+345) = 1',
+            '(σa/Se)² + (σm/Sy)² = 1'
+        ],
+        'Value': [
+            fatigue['Goodman'],
+            fatigue['Soderberg'],
+            fatigue['Gerber'],
+            fatigue['Morrow'],
+            fatigue['ASME-Elliptic']
+        ],
+        'Safe': [
+            fatigue['Goodman'] <= 1,
+            fatigue['Soderberg'] <= 1,
+            fatigue['Gerber'] <= 1,
+            fatigue['Morrow'] <= 1,
+            fatigue['ASME-Elliptic'] <= 1
+        ]
     })
-    st.dataframe(fatigue_df.style.format({"Value": "{:.3f}"}))
+    fatigue_df['Value'] = fatigue_df['Value'].apply(lambda x: f"{x:.3f}")
+    fatigue_df['Safe'] = fatigue_df['Safe'].apply(lambda x: "✅ Yes" if x else "❌ No")
+    st.dataframe(fatigue_df)
     
-# Plotting
-st.subheader('Fatigue Analysis Diagram')
-fig, ax = plt.subplots(figsize=(10, 8))
-
-# Generate x-axis values
-x = np.linspace(0, inputs['uts']*1.1, 100)
-
-# Calculate all criteria lines
-y_goodman = stresses['Se'] * (1 - x/inputs['uts'])
-y_soderberg = stresses['Se'] * (1 - x/inputs['yield_stress'])
-y_gerber = stresses['Se'] * (1 - (x/inputs['uts'])**2)
-y_morrow = stresses['Se'] * (1 - x/(inputs['uts'] + 345))
-y_asme = stresses['Se'] * np.sqrt(1 - (x/inputs['uts'])**2)
-
-# Plot all criteria with distinct styles and LABELS
-ax.plot(x, y_goodman, 'b-', linewidth=2, label='Goodman: σa/Se + σm/UTS = 1')
-ax.plot(x, y_soderberg, 'r-', linewidth=2, label='Soderberg: σa/Se + σm/Sy = 1') 
-ax.plot(x, y_gerber, 'g--', linewidth=2, label='Gerber: σa/Se + (σm/UTS)² = 1')
-ax.plot(x, y_morrow, 'm:', linewidth=2, label='Morrow: σa/Se + σm/(UTS+345) = 1')
-ax.plot(x, y_asme, 'c-.', linewidth=2, label='ASME-Elliptic: (σa/Se)² + (σm/Sy)² = 1')
-
-# Plot operating point
-ax.scatter(stresses['sigma_m'], stresses['sigma_a'], color='purple', s=120,
-          label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
-
-# Mark key points with their EQUATIONS
-ax.scatter(0, stresses['Se'], color='green', s=100, 
-          label=f'Se = {stresses["Se"]:.1f} MPa (Endurance Limit)')
-ax.scatter(inputs['uts'], 0, color='blue', s=100, 
-          label=f'UTS = {inputs["uts"]:.1f} MPa (Ultimate Strength)')
-ax.scatter(inputs['yield_stress'], 0, color='red', s=100,
-          label=f'Sy = {inputs["yield_stress"]:.1f} MPa (Yield Strength)')
-
-# Formatting
-ax.set_xlim(0, max(inputs['uts'], inputs['yield_stress'])*1.1)
-ax.set_ylim(0, stresses['Se']*1.5)
-ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=12)
-ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=12)
-ax.set_title('Fatigue Analysis Diagram with All Criteria', fontsize=14)
-ax.grid(True, linestyle=':', alpha=0.7)
-
-# Improved legend with all criteria equations
-ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=10)
-plt.tight_layout()
-
-st.pyplot(fig)
+    # Enhanced Plotting
+    st.subheader('Fatigue Analysis Diagram')
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Generate x-axis values
+    x = np.linspace(0, inputs['uts']*1.1, 100)
+    
+    # Plot all criteria with distinct styles
+    ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 'b-', linewidth=2.5, label='Goodman')
+    ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 'r-', linewidth=2.5, label='Soderberg')
+    ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 'g--', linewidth=2.5, label='Gerber')
+    ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 'm:', linewidth=2.5, label='Morrow')
+    ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 'c-.', linewidth=2.5, label='ASME-Elliptic')
+    
+    # Plot operating point
+    ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
+              color='purple', s=150, edgecolor='black',
+              label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
+    
+    # Mark key points
+    ax.scatter(0, stresses['Se'], color='green', s=100, label=f'Se = {stresses["Se"]:.1f} MPa')
+    ax.scatter(inputs['uts'], 0, color='blue', s=100, label=f'UTS = {inputs["uts"]:.1f} MPa')
+    ax.scatter(inputs['yield_stress'], 0, color='red', s=100, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+    
+    # Formatting
+    max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
+    max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
+    ax.set_xlim(0, max_x)
+    ax.set_ylim(0, max_y)
+    ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=12)
+    ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=12)
+    ax.set_title('Fatigue Analysis Diagram with All Criteria', fontsize=14)
+    ax.grid(True, linestyle=':', alpha=0.7)
+    
+    # Create custom legend
+    legend_elements = [
+        Line2D([0], [0], color='b', lw=2, label='Goodman'),
+        Line2D([0], [0], color='r', lw=2, label='Soderberg'),
+        Line2D([0], [0], color='g', linestyle='--', lw=2, label='Gerber'),
+        Line2D([0], [0], color='m', linestyle=':', lw=2, label='Morrow'),
+        Line2D([0], [0], color='c', linestyle='-.', lw=2, label='ASME-Elliptic'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='purple', 
+               markersize=10, markeredgecolor='black', label='Operating Point'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='green', 
+               markersize=8, label='Endurance Limit (Se)'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', 
+               markersize=8, label='Ultimate Strength (UTS)'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='red', 
+               markersize=8, label='Yield Strength (Sy)')
+    ]
+    
+    ax.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=10)
+    plt.tight_layout()
+    
+    st.pyplot(fig)
 
 except ValueError as e:
     st.error(f"Calculation error: {str(e)}")
