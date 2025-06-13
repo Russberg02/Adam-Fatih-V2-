@@ -13,53 +13,57 @@ st.set_page_config(
     page_icon="⚙️"
 )
 
-# High-contrast black and white color palette
+# Color palette with distinct colors for diagrams
+COLORS = {
+    'Goodman': '#1f77b4',     # Blue
+    'Soderberg': '#ff7f0e',   # Orange
+    'Gerber': '#2ca02c',      # Green
+    'Morrow': '#d62728',      # Red
+    'ASME-Elliptic': '#9467bd', # Purple
+    'OperatingPoint': '#e377c2', # Pink
+    'KeyPoints': '#7f7f7f'    # Gray
+}
+
+# Black and white color palette with high contrast
 BLACK = "#000000"
 DARK_GRAY = "#333333"
 MEDIUM_GRAY = "#666666"
 LIGHT_GRAY = "#e0e0e0"
 WHITE = "#FFFFFF"
-ACCENT = "#212121"
+ACCENT = "#212121"  # Slightly lighter than black for visual hierarchy
 
-# Original industrial colors for section headers
-SECTION_BLUE = "#2c3e50"      # Deep steel blue
-SECTION_GREEN = "#27ae60"     # Safety green
-SECTION_RED = "#e74c3c"       # Safety red
-SECTION_ORANGE = "#f39c12"    # Safety orange
-
-# Custom CSS for high-contrast styling
+# Custom CSS for high-contrast black and white styling
 st.markdown(f"""
 <style>
-    /* Main styling with black text */
-    .stApp, body, p, td, li, .stMarkdown, h1, h2, h3, h4, h5, h6 {{
-        color: #000000 !important;
-    }}
-    
+    /* Main styling */
     .stApp {{
         background-color: {WHITE};
+        color: {BLACK};
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }}
     
     /* Titles and headers */
-    h1, h2, h3 {{
-        border-bottom: 2px solid {BLACK};
+    h1, h2, h3, h4, h5, h6 {{
+        color: {BLACK} !important;
+        border-bottom: 2px solid {DARK_GRAY};
         padding-bottom: 0.3rem;
     }}
     
-    /* Sidebar styling - keep white text for dark background */
+    /* Sidebar styling */
     [data-testid="stSidebar"] {{
         background-color: {DARK_GRAY};
-        color: white;
+        color: {WHITE};
     }}
     
     .sidebar .sidebar-content {{
         background-color: {DARK_GRAY};
-        color: white;
+        color: {WHITE};
     }}
     
     /* Button styling */
     .stButton>button {{
         background-color: {BLACK};
-        color: white;
+        color: {WHITE};
         border-radius: 4px;
         border: none;
         font-weight: bold;
@@ -68,18 +72,18 @@ st.markdown(f"""
     
     .stButton>button:hover {{
         background-color: {MEDIUM_GRAY};
-        color: white;
+        color: {WHITE};
     }}
     
     /* Card styling */
     .card {{
-        background: white;
+        background: {WHITE};
         border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         padding: 15px;
         margin-bottom: 15px;
-        border-left: 4px solid {MEDIUM_GRAY};
-        color: #000000;
+        border-left: 4px solid {DARK_GRAY};
+        border: 1px solid {LIGHT_GRAY};
     }}
     
     /* Status indicators */
@@ -95,23 +99,32 @@ st.markdown(f"""
     
     /* Value display */
     .value-display {{
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         font-weight: bold;
-        color: #000000;
+        color: {BLACK};
+    }}
+    
+    /* Section headers */
+    .section-header {{
+        background-color: {LIGHT_GRAY};
+        color: {BLACK};
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-top: 20px;
+        border-left: 4px solid {BLACK};
     }}
     
     /* Material design elements */
     .material-card {{
-        background: white;
+        background: {WHITE};
         border: 1px solid {LIGHT_GRAY};
         border-radius: 4px;
         padding: 15px;
         margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        color: #000000;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }}
     
-    /* Industrial progress bars */
+    /* Progress bars */
     .progress-container {{
         height: 8px;
         background-color: {LIGHT_GRAY};
@@ -122,24 +135,62 @@ st.markdown(f"""
     
     .progress-bar {{
         height: 100%;
-        background-color: {BLACK};
+        background-color: {DARK_GRAY};
+    }}
+    
+    /* Table styling */
+    table {{
+        border: 1px solid {LIGHT_GRAY} !important;
+    }}
+    
+    tr {{
+        border-bottom: 1px solid {LIGHT_GRAY} !important;
+    }}
+    
+    td {{
+        border: none !important;
+    }}
+    
+    /* Expander styling */
+    .stExpander {{
+        border: 1px solid {LIGHT_GRAY} !important;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }}
+    
+    .st-emotion-cache-1c7k2aw {{
+        border-color: {LIGHT_GRAY} !important;
+    }}
+    
+    /* Plot styling */
+    .st-emotion-cache-1v0mbdj {{
+        border: 1px solid {LIGHT_GRAY} !important;
+        border-radius: 4px;
+        padding: 10px;
+    }}
+    
+    /* Sidebar expander headers */
+    .sidebar .stExpander > label {{
+        color: {WHITE} !important;
+        font-weight: bold !important;
+        text-shadow: 0px 0px 3px rgba(255,255,255,0.5);
     }}
 </style>
 """, unsafe_allow_html=True)
 
 # App header with high contrast theme
 st.markdown(f"""
-<div style="background-color:{BLACK}; padding:20px; border-radius:5px; margin-bottom:20px;">
-    <h1 style="color:white; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
+<div style="background-color:{DARK_GRAY}; padding:20px; border-radius:5px; margin-bottom:20px;">
+    <h1 style="color:{WHITE}; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
     <p style="color:#b0b0b0;">Pipeline Integrity Management System for Energy Sector</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar with high contrast scheme
+# Sidebar with improved contrast headers
 with st.sidebar:
     st.markdown(f"""
     <div style="background-color:{BLACK}; padding:10px; border-radius:4px; margin-bottom:15px;">
-        <h3 style="color:white; margin:0;">Pipeline Parameters</h3>
+        <h3 style="color:{WHITE}; margin:0; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">Pipeline Parameters</h3>
     </div>
     """, unsafe_allow_html=True)
     
@@ -163,7 +214,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown(f"""
     <div style="background-color:{BLACK}; padding:10px; border-radius:4px; margin-top:15px;">
-        <h4 style="color:white; margin:0;">Safety Indicators</h4>
+        <h4 style="color:{WHITE}; margin:0;">Safety Indicators</h4>
         <p style="color:#b0b0b0; margin:0;">✅ Safe: Value ≤ 1<br>❌ Unsafe: Value > 1</p>
     </div>
     """, unsafe_allow_html=True)
@@ -182,7 +233,7 @@ with col1:
 with col2:
     st.markdown(f"""
     <div class="material-card">
-        <h4 style="border-bottom: 2px solid {BLACK}; padding-bottom: 5px;">Assessment Protocol</h4>
+        <h4 style="border-bottom: 1px solid {LIGHT_GRAY}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
@@ -295,18 +346,18 @@ if st.session_state.get('run_analysis', False):
             stresses['sigma_f']
         )
         
-        # Burst Pressure Results in Card Layout (with colored section header)
+        # Burst Pressure Results in Card Layout
         st.markdown(f"""
-        <div style="background-color:{SECTION_BLUE}; padding:10px; border-radius:4px; margin-top:20px;">
-            <h3 style="color:white; margin:0;">📊 Burst Pressure Assessment</h3>
+        <div class="section-header">
+            <h3 style="margin:0;">📊 Burst Pressure Assessment</h3>
         </div>
         """, unsafe_allow_html=True)
         
         burst_cols = st.columns(5)
         burst_data = [
             ("Von Mises", pressures['P_vm'], BLACK),
-            ("Tresca", pressures['P_tresca'], DARK_GRAY),
-            ("ASME B31G", pressures['P_asme'], MEDIUM_GRAY),
+            ("Tresca", pressures['P_tresca'], MEDIUM_GRAY),
+            ("ASME B31G", pressures['P_asme'], DARK_GRAY),
             ("DNV", pressures['P_dnv'], ACCENT),
             ("PCORRC", pressures['P_pcorrc'], BLACK)
         ]
@@ -314,7 +365,7 @@ if st.session_state.get('run_analysis', False):
         for i, (name, value, color) in enumerate(burst_data):
             with burst_cols[i]:
                 st.markdown(f"""
-                <div class="card">
+                <div class="card" style="border-left: 4px solid {color};">
                     <h4 style="margin-top: 0;">{name}</h4>
                     <div class="value-display">{value:.2f} MPa</div>
                     <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
@@ -323,10 +374,10 @@ if st.session_state.get('run_analysis', False):
                 </div>
                 """, unsafe_allow_html=True)
         
-        # Stress Analysis (with colored section header)
+        # Stress Analysis
         st.markdown(f"""
-        <div style="background-color:{SECTION_GREEN}; padding:10px; border-radius:4px; margin-top:20px;">
-            <h3 style="color:white; margin:0;">📈 Stress Analysis</h3>
+        <div class="section-header">
+            <h3 style="margin:0;">📈 Stress Analysis</h3>
         </div>
         """, unsafe_allow_html=True)
         
@@ -388,18 +439,18 @@ if st.session_state.get('run_analysis', False):
             plt.tight_layout()
             st.pyplot(fig)
         
-        # Fatigue Assessment (with colored section header)
+        # Fatigue Assessment with Safety Status
         st.markdown(f"""
-        <div style="background-color:{SECTION_RED}; padding:10px; border-radius:4px; margin-top:20px;">
-            <h3 style="color:white; margin:0;">🛡️ Fatigue Assessment</h3>
+        <div class="section-header">
+            <h3 style="margin:0;">🛡️ Fatigue Assessment</h3>
         </div>
         """, unsafe_allow_html=True)
         
         fatigue_cols = st.columns(5)
         fatigue_data = [
             ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", BLACK),
-            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", DARK_GRAY),
-            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", MEDIUM_GRAY),
+            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", MEDIUM_GRAY),
+            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", DARK_GRAY),
             ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", ACCENT),
             ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", BLACK)
         ]
@@ -411,7 +462,7 @@ if st.session_state.get('run_analysis', False):
                 status_class = "safe" if safe else "unsafe"
                 
                 st.markdown(f"""
-                <div class="card">
+                <div class="card" style="border-left: 4px solid {color};">
                     <h4 style="margin-top: 0;">{name}</h4>
                     <div style="font-size: 0.85em; margin-bottom: 10px;">{equation}</div>
                     <div class="value-display">{value:.3f}</div>
@@ -422,10 +473,10 @@ if st.session_state.get('run_analysis', False):
                 </div>
                 """, unsafe_allow_html=True)
         
-        # Enhanced Plotting with Matplotlib (with colored section header)
+        # Enhanced Plotting with Matplotlib
         st.markdown(f"""
-        <div style="background-color:{SECTION_ORANGE}; padding:10px; border-radius:4px; margin-top:20px;">
-            <h3 style="color:white; margin:0;">📉 Fatigue Analysis Diagram</h3>
+        <div class="section-header">
+            <h3 style="margin:0;">📉 Fatigue Analysis Diagram</h3>
         </div>
         """, unsafe_allow_html=True)
         
@@ -434,22 +485,30 @@ if st.session_state.get('run_analysis', False):
         # Generate x-axis values
         x = np.linspace(0, inputs['uts']*1.1, 100)
         
-        # Plot all criteria with distinct styles in grayscale
-        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), color='black', linewidth=2, label='Goodman')
-        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), color='black', linestyle='--', linewidth=2, label='Soderberg')
-        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), color='black', linestyle=':', linewidth=2, label='Gerber')
-        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), color='black', linestyle='-.', linewidth=2, label='Morrow')
-        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), color='gray', linewidth=2, label='ASME-Elliptic')
+        # Plot all criteria with distinct colors
+        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 
+                color=COLORS['Goodman'], linewidth=2.5, label='Goodman')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 
+                color=COLORS['Soderberg'], linewidth=2.5, label='Soderberg')
+        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 
+                color=COLORS['Gerber'], linestyle='--', linewidth=2.5, label='Gerber')
+        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 
+                color=COLORS['Morrow'], linestyle=':', linewidth=2.5, label='Morrow')
+        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 
+                color=COLORS['ASME-Elliptic'], linestyle='-.', linewidth=2.5, label='ASME-Elliptic')
         
-        # Plot operating point
+        # Plot operating point with distinct color
         ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-                  color='black', s=120, edgecolor='white', zorder=10,
+                  color=COLORS['OperatingPoint'], s=150, edgecolor='black', zorder=10,
                   label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
         
-        # Mark key points
-        ax.scatter(0, stresses['Se'], color='black', s=80, label=f'Se = {stresses["Se"]:.1f} MPa')
-        ax.scatter(inputs['uts'], 0, color='black', s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
-        ax.scatter(inputs['yield_stress'], 0, color='black', s=80, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+        # Mark key points with consistent color
+        ax.scatter(0, stresses['Se'], color=COLORS['KeyPoints'], s=100, 
+                  label=f'Se = {stresses["Se"]:.1f} MPa')
+        ax.scatter(inputs['uts'], 0, color=COLORS['KeyPoints'], s=100, 
+                  label=f'UTS = {inputs["uts"]:.1f} MPa')
+        ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, 
+                  label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
         
         # Formatting
         max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
@@ -487,8 +546,8 @@ else:
 
 # References and links in expanders
 st.markdown(f"""
-<div style="background-color:{MEDIUM_GRAY}; padding:10px; border-radius:4px; margin-top:20px;">
-    <h3 style="color:white; margin:0;">📚 References & Resources</h3>
+<div class="section-header">
+    <h3 style="margin:0;">📚 References & Resources</h3>
 </div>
 """, unsafe_allow_html=True)
 
@@ -520,7 +579,7 @@ with ref_col2:
 # Footer
 st.markdown("---")
 st.markdown(f"""
-<div style="background-color:{BLACK}; padding:20px; border-radius:5px; margin-top:20px;">
+<div style="background-color:{DARK_GRAY}; padding:20px; border-radius:5px; margin-top:20px;">
     <div style="display: flex; justify-content: space-between; align-items: center; color:white;">
         <div>
             <h4 style="margin:0; color:white;">FATIH v2.0 | Industrial Pipeline Integrity System</h4>
