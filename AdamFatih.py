@@ -5,7 +5,7 @@ import math
 import matplotlib.pyplot as plt
 from PIL import Image
 
-# Configuration
+#Configuration
 st.set_page_config(layout="wide")
 
 # Header
