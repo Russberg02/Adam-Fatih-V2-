@@ -5,7 +5,6 @@ import math
 import matplotlib.pyplot as plt
 from PIL import Image
 from matplotlib.lines import Line2D
-import plotly.graph_objects as go
 
 # Configuration
 st.set_page_config(
@@ -46,6 +45,7 @@ st.markdown("""
         border-radius: 4px;
         border: none;
         font-weight: bold;
+        padding: 0.5rem 1rem;
     }
     
     .stButton>button:hover {
@@ -77,6 +77,21 @@ st.markdown("""
     .unsafe {
         color: #e74c3c;
         font-weight: bold;
+    }
+    
+    /* Grid layout */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    /* Value display */
+    .value-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2c3e50;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -112,6 +127,8 @@ with st.sidebar:
     - Safe: ✅ (Value ≤ 1)
     - Unsafe: ❌ (Value > 1)
     """)
+    if st.button('Run Analysis', use_container_width=True):
+        st.session_state.run_analysis = True
 
 # Image display
 st.subheader('Pipeline Configuration')
@@ -126,6 +143,7 @@ with col2:
         <ul>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
+            <li>Click "Run Analysis" in sidebar</li>
             <li>Review burst pressure calculations</li>
             <li>Analyze stress and fatigue results</li>
             <li>Check safety status for all criteria</li>
@@ -219,212 +237,173 @@ def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
     }
 
 # Main analysis section
-try:
-    # Calculate all parameters
-    pressures = calculate_pressures(inputs)
-    stresses = calculate_stresses(inputs)
-    fatigue = calculate_fatigue_criteria(
-        stresses['sigma_a'], stresses['sigma_m'],
-        stresses['Se'], inputs['uts'], inputs['yield_stress'],
-        stresses['sigma_f']
-    )
-    
-    # Burst Pressure Results in Card Layout
-    st.subheader('📊 Burst Pressure Assessment')
-    burst_col1, burst_col2, burst_col3, burst_col4, burst_col5 = st.columns(5)
-    
-    burst_data = [
-        ("Von Mises", pressures['P_vm'], "#3498db"),
-        ("Tresca", pressures['P_tresca'], "#2ecc71"),
-        ("ASME B31G", pressures['P_asme'], "#9b59b6"),
-        ("DNV", pressures['P_dnv'], "#e74c3c"),
-        ("PCORRC", pressures['P_pcorrc'], "#f39c12")
-    ]
-    
-    for i, (name, value, color) in enumerate(burst_data):
-        with [burst_col1, burst_col2, burst_col3, burst_col4, burst_col5][i]:
-            st.markdown(f"""
-            <div class="card" style="border-left: 5px solid {color};">
-                <h4 style="margin-top: 0;">{name}</h4>
-                <h3>{value:.2f} MPa</h3>
+if st.session_state.get('run_analysis', False):
+    try:
+        # Calculate all parameters
+        pressures = calculate_pressures(inputs)
+        stresses = calculate_stresses(inputs)
+        fatigue = calculate_fatigue_criteria(
+            stresses['sigma_a'], stresses['sigma_m'],
+            stresses['Se'], inputs['uts'], inputs['yield_stress'],
+            stresses['sigma_f']
+        )
+        
+        # Burst Pressure Results in Card Layout
+        st.subheader('📊 Burst Pressure Assessment')
+        st.markdown('<div class="grid-container">', unsafe_allow_html=True)
+        
+        burst_data = [
+            ("Von Mises", pressures['P_vm'], "#3498db"),
+            ("Tresca", pressures['P_tresca'], "#2ecc71"),
+            ("ASME B31G", pressures['P_asme'], "#9b59b6"),
+            ("DNV", pressures['P_dnv'], "#e74c3c"),
+            ("PCORRC", pressures['P_pcorrc'], "#f39c12")
+        ]
+        
+        cols = st.columns(5)
+        for i, (name, value, color) in enumerate(burst_data):
+            with cols[i]:
+                st.markdown(f"""
+                <div class="card" style="border-left: 5px solid {color};">
+                    <h4 style="margin-top: 0;">{name}</h4>
+                    <div class="value-display">{value:.2f} MPa</div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Stress Analysis
+        st.subheader('📈 Stress Analysis')
+        stress_col1, stress_col2 = st.columns(2)
+        
+        with stress_col1:
+            st.markdown("""
+            <div class="card">
+                <h4>Stress Parameters</h4>
+                <table style="width:100%; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Max VM Stress</td>
+                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Min VM Stress</td>
+                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Alternating Stress</td>
+                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">Mean Stress</td>
+                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">Endurance Limit</td>
+                        <td style="text-align: right; padding: 8px;">{:.2f} MPa</td>
+                    </tr>
+                </table>
             </div>
-            """, unsafe_allow_html=True)
-    
-    # Stress Analysis in Tabs
-    st.subheader('📈 Stress Analysis')
-    tab1, tab2 = st.tabs(["Stress Values", "Visualization"])
-    
-    with tab1:
-        stress_df = pd.DataFrame({
-            'Parameter': ['Max VM Stress', 'Min VM Stress', 'Alternating Stress', 
-                          'Mean Stress', 'Endurance Limit'],
-            'Value (MPa)': [
+            """.format(
                 stresses['sigma_vm_max'],
                 stresses['sigma_vm_min'],
                 stresses['sigma_a'],
                 stresses['sigma_m'],
                 stresses['Se']
+            ), unsafe_allow_html=True)
+        
+        with stress_col2:
+            # Simple stress visualization
+            fig, ax = plt.subplots(figsize=(6, 4))
+            categories = ['Max Stress', 'Min Stress', 'Amplitude']
+            values = [
+                stresses['sigma_vm_max'],
+                stresses['sigma_vm_min'],
+                stresses['sigma_a']
             ]
-        })
-        st.dataframe(stress_df.style.format({"Value (MPa)": "{:.2f}"}), height=210)
-    
-    with tab2:
-        fig_stress = go.Figure()
-        fig_stress.add_trace(go.Indicator(
-            mode="number",
-            value=stresses['sigma_vm_max'],
-            title={"text": "Max VM Stress (MPa)"},
-            domain={'row': 0, 'column': 0}
-        ))
-        fig_stress.add_trace(go.Indicator(
-            mode="number",
-            value=stresses['sigma_vm_min'],
-            title={"text": "Min VM Stress (MPa)"},
-            domain={'row': 0, 'column': 1}
-        ))
-        fig_stress.add_trace(go.Indicator(
-            mode="number",
-            value=stresses['sigma_a'],
-            title={"text": "Alternating Stress (MPa)"},
-            domain={'row': 1, 'column': 0}
-        ))
-        fig_stress.add_trace(go.Indicator(
-            mode="number",
-            value=stresses['sigma_m'],
-            title={"text": "Mean Stress (MPa)"},
-            domain={'row': 1, 'column': 1}
-        ))
-        fig_stress.update_layout(
-            grid={'rows': 2, 'columns': 2, 'pattern': "independent"},
-            template='plotly_white'
-        )
-        st.plotly_chart(fig_stress, use_container_width=True)
-    
-    # Fatigue Assessment with Safety Status
-    st.subheader('🛡️ Fatigue Assessment')
-    
-    # Create cards for each criterion
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    fatigue_data = [
-        ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", "#3498db", col1),
-        ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", "#2ecc71", col2),
-        ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", "#9b59b6", col3),
-        ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", "#e74c3c", col4),
-        ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", "#f39c12", col5)
-    ]
-    
-    for name, value, equation, color, col in fatigue_data:
-        with col:
-            safe = value <= 1
-            status = "✅ Safe" if safe else "❌ Unsafe"
-            status_class = "safe" if safe else "unsafe"
-            
-            st.markdown(f"""
-            <div class="card" style="border-left: 5px solid {color};">
-                <h4 style="margin-top: 0;">{name}</h4>
-                <div style="font-size: 0.9em; color: #7f8c8d;">{equation}</div>
-                <h3>{value:.3f}</h3>
-                <div class="{status_class}">{status}</div>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    # Enhanced Plotting with Plotly
-    st.subheader('📉 Fatigue Analysis Diagram')
-    
-    # Generate x-axis values
-    x = np.linspace(0, inputs['uts']*1.1, 100)
-    
-    # Create Plotly figure
-    fig = go.Figure()
-    
-    # Add criteria lines
-    fig.add_trace(go.Scatter(
-        x=x, y=stresses['Se']*(1 - x/inputs['uts']),
-        mode='lines',
-        name='Goodman',
-        line=dict(color='#3498db', width=3)
-    ))
-    fig.add_trace(go.Scatter(
-        x=x, y=stresses['Se']*(1 - x/inputs['yield_stress']),
-        mode='lines',
-        name='Soderberg',
-        line=dict(color='#2ecc71', width=3)
-    ))
-    fig.add_trace(go.Scatter(
-        x=x, y=stresses['Se']*(1 - (x/inputs['uts'])**2),
-        mode='lines',
-        name='Gerber',
-        line=dict(color='#9b59b6', width=3, dash='dash')
-    ))
-    fig.add_trace(go.Scatter(
-        x=x, y=stresses['Se']*(1 - x/stresses['sigma_f']),
-        mode='lines',
-        name='Morrow',
-        line=dict(color='#e74c3c', width=3, dash='dot')
-    ))
-    fig.add_trace(go.Scatter(
-        x=x, y=stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2),
-        mode='lines',
-        name='ASME-Elliptic',
-        line=dict(color='#f39c12', width=3, dash='dashdot')
-    ))
-    
-    # Add operating point
-    fig.add_trace(go.Scatter(
-        x=[stresses['sigma_m']],
-        y=[stresses['sigma_a']],
-        mode='markers',
-        name=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})',
-        marker=dict(color='#2c3e50', size=12, line=dict(color='white', width=2))
-    ))
-    
-    # Add material points
-    fig.add_trace(go.Scatter(
-        x=[0],
-        y=[stresses['Se']],
-        mode='markers',
-        name=f'Se = {stresses["Se"]:.1f} MPa',
-        marker=dict(color='#27ae60', size=10)
-    ))
-    fig.add_trace(go.Scatter(
-        x=[inputs['uts']],
-        y=[0],
-        mode='markers',
-        name=f'UTS = {inputs["uts"]:.1f} MPa',
-        marker=dict(color='#2980b9', size=10)
-    ))
-    fig.add_trace(go.Scatter(
-        x=[inputs['yield_stress']],
-        y=[0],
-        mode='markers',
-        name=f'Sy = {inputs["yield_stress"]:.1f} MPa',
-        marker=dict(color='#c0392b', size=10)
-    ))
-    
-    # Formatting
-    max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
-    max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
-    
-    fig.update_layout(
-        title='Fatigue Analysis Diagram with All Criteria',
-        xaxis_title='Mean Stress (σm) [MPa]',
-        yaxis_title='Alternating Stress (σa) [MPa]',
-        xaxis=dict(range=[0, max_x]),
-        yaxis=dict(range=[0, max_y]),
-        template='plotly_white',
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        height=600,
-        margin=dict(l=50, r=50, b=80, t=80, pad=4),
-        hovermode="x unified"
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+            colors = ['#3498db', '#2ecc71', '#9b59b6']
+            ax.bar(categories, values, color=colors)
+            ax.set_title('Stress Distribution', fontsize=12)
+            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        # Fatigue Assessment with Safety Status
+        st.subheader('🛡️ Fatigue Assessment')
+        st.markdown('<div class="grid-container">', unsafe_allow_html=True)
+        
+        fatigue_data = [
+            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", "#3498db"),
+            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", "#2ecc71"),
+            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", "#9b59b6"),
+            ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", "#e74c3c"),
+            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", "#f39c12")
+        ]
+        
+        cols = st.columns(5)
+        for i, (name, value, equation, color) in enumerate(fatigue_data):
+            with cols[i]:
+                safe = value <= 1
+                status = "✅ Safe" if safe else "❌ Unsafe"
+                status_class = "safe" if safe else "unsafe"
+                
+                st.markdown(f"""
+                <div class="card" style="border-left: 5px solid {color};">
+                    <h4 style="margin-top: 0;">{name}</h4>
+                    <div style="font-size: 0.9em; color: #7f8c8d;">{equation}</div>
+                    <div class="value-display">{value:.3f}</div>
+                    <div class="{status_class}">{status}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Enhanced Plotting with Matplotlib
+        st.subheader('📉 Fatigue Analysis Diagram')
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        # Generate x-axis values
+        x = np.linspace(0, inputs['uts']*1.1, 100)
+        
+        # Plot all criteria with distinct styles
+        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 'b-', linewidth=2, label='Goodman')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 'r-', linewidth=2, label='Soderberg')
+        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 'g--', linewidth=2, label='Gerber')
+        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 'm:', linewidth=2, label='Morrow')
+        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 'c-.', linewidth=2, label='ASME-Elliptic')
+        
+        # Plot operating point
+        ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
+                  color='purple', s=120, edgecolor='black', zorder=10,
+                  label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
+        
+        # Mark key points
+        ax.scatter(0, stresses['Se'], color='green', s=80, label=f'Se = {stresses["Se"]:.1f} MPa')
+        ax.scatter(inputs['uts'], 0, color='blue', s=80, label=f'UTS = {inputs["uts"]:.1f} MPa')
+        ax.scatter(inputs['yield_stress'], 0, color='red', s=80, label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+        
+        # Formatting
+        max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
+        max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
+        ax.set_xlim(0, max_x)
+        ax.set_ylim(0, max_y)
+        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10)
+        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10)
+        ax.set_title('Fatigue Analysis Diagram', fontsize=12)
+        ax.grid(True, linestyle='--', alpha=0.7)
+        
+        # Create custom legend
+        ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1), fontsize=9)
+        plt.tight_layout()
+        
+        st.pyplot(fig)
 
-except ValueError as e:
-    st.error(f"🚨 Calculation error: {str(e)}")
-except Exception as e:
-    st.error(f"🚨 An unexpected error occurred: {str(e)}")
+    except ValueError as e:
+        st.error(f"🚨 Calculation error: {str(e)}")
+    except Exception as e:
+        st.error(f"🚨 An unexpected error occurred: {str(e)}")
+else:
+    st.info("💡 Enter parameters in the sidebar and click 'Run Analysis' to start")
 
 # References and links in expanders
 st.subheader('📚 References & Resources')
