@@ -44,7 +44,7 @@ st.markdown(f"""
     
     /* Titles and headers */
     h1, h2, h3, h4, h5, h6 {{
-        color: {BLACK} !important;
+        color: {WHITE} !important;
         border-bottom: 2px solid {DARK_GRAY};
         padding-bottom: 0.3rem;
     }}
