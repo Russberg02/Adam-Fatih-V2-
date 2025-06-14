@@ -51,7 +51,7 @@ st.markdown(f"""
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {{
-        background-color: {DARK_GRAY};
+        background-color: {LIGHT_GRAY};
         color: {WHITE};
     }}
     
