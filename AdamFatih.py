@@ -39,43 +39,109 @@ RED = "#FF0000"     # For critical indicators
 # Custom CSS for high-contrast black and white styling
 st.markdown(f"""
 <style>
-    /* Main styling */
+    /* Base styling for both themes */
+    :root {{
+        --primary-text: {BLACK};
+        --secondary-text: {DARK_GRAY};
+        --background: {WHITE};
+        --card-bg: {WHITE};
+        --border: {BLACK};
+        --accent: {ACCENT};
+        --light-gray: {LIGHT_GRAY};
+    }}
+
+    /* Apply to all text elements */
+    body, .stApp, .stMarkdown, .stRadio, .stNumberInput, .stSelectbox, 
+    .stSlider, .stButton, .stExpander, .stTable, .stDataFrame,
+    .stAlert, .stProgress, .stCheckbox, .stTextInput, .stTextArea {{
+        color: var(--primary-text) !important;
+    }}
+
+    /* Specific element overrides */
+    .stRadio label, .stCheckbox label, .stSelectbox label, 
+    .stNumberInput label, .stTextInput label, .stTextArea label,
+    .stSlider label {{
+        color: var(--primary-text) !important;
+    }}
+
+    /* Input fields */
+    .stNumberInput input, .stTextInput input, .stTextArea textarea,
+    .stSelectbox select {{
+        background-color: var(--card-bg) !important;
+        color: var(--primary-text) !important;
+        border: 1px solid var(--border) !important;
+    }}
+
+    /* Tables */
+    table, th, td {{
+        color: var(--primary-text) !important;
+        background-color: var(--card-bg) !important;
+        border-color: var(--border) !important;
+    }}
+
+    /* Expanders */
+    .stExpander > label {{
+        color: var(--primary-text) !important;
+        font-weight: bold !important;
+    }}
+
+    /* Main app container */
     .stApp {{
-        background-color: {WHITE};
-        color: {BLACK};
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--background);
+        color: var(--primary-text);
+    }}
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {{
+        background-color: var(--background);
+        border-right: 1px solid var(--border);
+    }}
+
+    /* Cards and containers */
+    .card, .material-card, .section-header {{
+        background-color: var(--card-bg);
+        color: var(--primary-text);
+        border: 1px solid var(--border);
+    }}
+
+    /* Progress bars */
+    .progress-container {{
+        background-color: var(--light-gray);
     }}
     
-    /* Fix for dataset radio button text color */
-    .stRadio [data-baseweb="radio"] label {{
-        color: {BLACK} !important;
+    .progress-bar {{
+        background-color: var(--border);
     }}
-    
-    /* Titles and headers */
+
+    /* Plot containers */
+    .stPlot {{
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--border) !important;
+    }}
+
+    /* Force dark mode to use light colors */
+    [data-theme="dark"] {{
+        --primary-text: {BLACK} !important;
+        --secondary-text: {DARK_GRAY} !important;
+        --background: {WHITE} !important;
+        --card-bg: {WHITE} !important;
+        --border: {BLACK} !important;
+        --accent: {ACCENT} !important;
+        --light-gray: {LIGHT_GRAY} !important;
+    }}
+
+    /* Additional custom styles from original design */
     h1, h2, h3, h4, h5, h6 {{
-        color: {BLACK} !important;
-        border-bottom: 2px solid {BLACK};
+        color: var(--primary-text) !important;
+        border-bottom: 2px solid var(--border);
         padding-bottom: 0.3rem;
     }}
     
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {{
-        background-color: {WHITE};
-        color: {BLACK};
-        border-right: 1px solid {MEDIUM_GRAY};
-    }}
-    
-    .sidebar .sidebar-content {{
-        background-color: {WHITE};
-        color: {BLACK};
-    }}
-    
-    /* Button styling */
     .stButton>button {{
         background-color: {MEDIUM_GRAY};
         color: {WHITE};
         border-radius: 4px;
-        border: 1px solid {BLACK};
+        border: 1px solid var(--border);
         font-weight: bold;
         padding: 0.5rem 1rem;
     }}
@@ -85,18 +151,12 @@ st.markdown(f"""
         color: {WHITE};
     }}
     
-    /* Card styling */
-    .card {{
-        background: {WHITE};
-        border-radius: 5px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 4px solid {BLACK};
-        border: 1px solid {BLACK};
+    .value-display {{
+        font-size: 1.6rem;
+        font-weight: bold;
+        color: var(--primary-text);
     }}
     
-    /* Status indicators */
     .safe {{
         color: {MEDIUM_GRAY};
         font-weight: bold;
@@ -107,172 +167,14 @@ st.markdown(f"""
         font-weight: bold;
     }}
     
-    /* Value display */
-    .value-display {{
-        font-size: 1.6rem;
-        font-weight: bold;
-        color: {BLACK};
-    }}
-    
-    /* Section headers */
-    .section-header {{
-        background-color: {LIGHT_GRAY};
-        color: {BLACK};
-        padding: 10px 15px;
-        border-radius: 4px;
-        margin-top: 20px;
-        border-left: 4px solid {BLACK};
-    }}
-    
-    /* Material design elements */
-    .material-card {{
-        background: {WHITE};
-        border: 1px solid {BLACK};
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }}
-    
-    /* Progress bars */
-    .progress-container {{
-        height: 8px;
-        background-color: {LIGHT_GRAY};
-        border-radius: 4px;
-        margin: 10px 0;
-        overflow: hidden;
-    }}
-    
-    .progress-bar {{
-        height: 100%;
-        background-color: {BLACK};
-    }}
-    
-    /* Table styling */
-    table {{
-        border: 1px solid {BLACK} !important;
-    }}
-    
-    tr {{
-        border-bottom: 1px solid {BLACK} !important;
-    }}
-    
-    th, td {{
-        color: {BLACK} !important;
-        background-color: {WHITE} !important;
-        border: 1px solid {BLACK} !important;
-    }}
-    
-    /* Expander styling */
-    .stExpander {{
-        border: 1px solid {BLACK} !important;
-        border-radius: 4px;
-        margin-bottom: 10px;
-    }}
-    
-    .st-emotion-cache-1c7k2aw {{
-        border-color: {BLACK} !important;
-    }}
-    
-    /* Plot styling */
-    .st-emotion-cache-1v0mbdj {{
-        border: 1px solid {BLACK} !important;
-        border-radius: 4px;
-        padding: 10px;
-        background-color: {WHITE} !important;
-    }}
-    
-    /* Input fields */
-    .stNumberInput, .stSlider {{
-        color: {BLACK} !important;
-        background-color: {WHITE} !important;
-    }}
-    
-    /* Sidebar headers */
-    .sidebar .stExpander > label {{
-        color: {BLACK} !important;
-        font-weight: bold !important;
-    }}
-
-    /* Add this new section for input fields */
-    .stNumberInput, .stSlider {{
-        color: var(--text) !important;
-    }}
-    
-    .stNumberInput input, .stSlider input {{
-        color: var(--text) !important;
-        background-color: var(--card) !important;
-        border: 1px solid var(--border) !important;
-    }}
-    
-    .stNumberInput label, .stSlider label {{
-        color: var(--text) !important;
-    }}
-    
-    /* Slider track styling */
-    .stSlider div[data-baseweb="slider"] > div:first-child {{
-        background-color: var(--light-gray) !important;
-    }}
-    
-    /* Slider thumb styling */
-    .stSlider div[role="slider"] {{
-        background-color: var(--border) !important;
-        border: 1px solid var(--border) !important;
-    }}
-    
-    /* Focus state styling */
-    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {{
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 0 0.2rem rgba(100, 100, 100, 0.25) !important;
-    }}
-    
-    /* Dataset tabs */
-    .dataset-tab {{
-        padding: 8px 12px;
-        margin-right: 5px;
-        border: 1px solid {BLACK};
-        border-radius: 4px;
-        cursor: pointer;
-        display: inline-block;
-    }}
-    
     .dataset-tab.active {{
-        background-color: {BLACK};
-        color: {WHITE};
+        background-color: var(--border);
+        color: var(--background);
     }}
     
     .dataset-tab.inactive {{
-        background-color: {LIGHT_GRAY};
-        color: {BLACK};
-    }}
-    
-    /* Fix for radio buttons in dark mode */
-    .stRadio > div[role="radiogroup"] > label {{
-        color: {BLACK} !important;
-    }}
-    
-    /* Custom styling for radio buttons */
-    .stRadio > div {{
-        flex-direction: row !important;
-        gap: 15px !important;
-    }}
-    
-    .stRadio > div > label {{
-        background-color: #f0f0f0;
-        padding: 8px 15px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        transition: all 0.3s ease;
-    }}
-    
-    .stRadio > div > label:hover {{
-        background-color: #e0e0e0;
-    }}
-    
-    .stRadio > div > [data-baseweb="radio"]:checked + label {{
-        background-color: {DARK_GRAY} !important;
-        color: {WHITE} !important;
-        border-color: {DARK_GRAY};
+        background-color: var(--light-gray);
+        color: var(--primary-text);
     }}
 </style>
 """, unsafe_allow_html=True)
