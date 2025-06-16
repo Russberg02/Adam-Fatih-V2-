@@ -185,6 +185,38 @@ st.markdown(f"""
         color: {BLACK} !important;
         font-weight: bold !important;
     }}
+
+     /* Add this new section for input fields */
+    .stNumberInput, .stSlider {{
+        color: var(--text) !important;
+    }}
+    
+    .stNumberInput input, .stSlider input {{
+        color: var(--text) !important;
+        background-color: var(--card) !important;
+        border: 1px solid var(--border) !important;
+    }}
+    
+    .stNumberInput label, .stSlider label {{
+        color: var(--text) !important;
+    }}
+    
+    /* Slider track styling */
+    .stSlider div[data-baseweb="slider"] > div:first-child {{
+        background-color: var(--light-gray) !important;
+    }}
+    
+    /* Slider thumb styling */
+    .stSlider div[role="slider"] {{
+        background-color: var(--border) !important;
+        border: 1px solid var(--border) !important;
+    }}
+    
+    /* Focus state styling */
+    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {{
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 0.2rem rgba(100, 100, 100, 0.25) !important;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
