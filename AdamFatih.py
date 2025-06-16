@@ -46,6 +46,11 @@ st.markdown(f"""
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }}
     
+    /* Fix for dataset radio button text color */
+    .stRadio [data-baseweb="radio"] label {{
+        color: {BLACK} !important;
+    }}
+    
     /* Titles and headers */
     h1, h2, h3, h4, h5, h6 {{
         color: {BLACK} !important;
