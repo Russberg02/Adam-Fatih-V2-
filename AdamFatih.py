@@ -314,7 +314,18 @@ st.markdown(f"""
 
 # Sidebar with improved contrast headers
 with st.sidebar:
-    # Dataset selection moved to sidebar
+    # New Data Selection Section
+    st.markdown(f"""
+    <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
+        <h3 style="color:{BLACK}; margin:0;">📁 Data Selection</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Data selection options
+    data_options = ["ASME B31G", "DNV-RP-F101", "PCORRC", "Custom Input"]
+    selected_data = st.selectbox("Select data source:", data_options, index=0)
+    
+    # Dataset selection
     st.markdown(f"""
     <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
         <h3 style="color:{BLACK}; margin:0;">Dataset Selection</h3>
