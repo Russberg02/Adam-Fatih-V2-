@@ -790,7 +790,7 @@ st.markdown(f"""
 
 ref_col1, ref_col2 = st.columns([1, 1])
 with ref_col1:
-    with st.expander("Research References", expanded=True):
+    with st.expander("Research References", expanded=False):
         st.markdown(f"""
         <div style="color:{BLACK};">
         - **Xian-Kui Zhu** (2021)  
@@ -807,7 +807,7 @@ with ref_col1:
         """, unsafe_allow_html=True)
 
 with ref_col2:
-    with st.expander("Additional Resources", expanded=True):
+    with st.expander("Additional Resources", expanded=False):
         st.markdown(f"""
         <div style="color:{BLACK};">
         - [Case Study: Pipeline Failure Analysis](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
@@ -826,12 +826,12 @@ st.markdown(f"""
 <div style="background-color:{LIGHT_GRAY}; padding:20px; border-radius:5px; margin-top:20px; border-top: 2px solid {BLACK}">
     <div style="display: flex; justify-content: space-between; align-items: center; color:{BLACK};">
         <div>
-            <h4 style="margin:0;">FATIH v2.0 | Industrial Pipeline Integrity System</h4>
+            <h4 style="margin:0;">ADAM-FATIH v2.0 | Pipeline Integrity Management System</h4>
             <p style="margin:0;">© 2023 Engineering Solutions Ltd.</p>
         </div>
         <div style="text-align: right;">
-            <p style="margin:0;">Technical Support: support@fatih-eng.com</p>
-            <p style="margin:0;">Phone: +1 (800) 555-ENGI</p>
+            <p style="margin:0;">Technical Support: rrussellspielberg@gmail.com</p>
+            <p style="margin:0;">Phone: +60 12-8697725</p>
         </div>
     </div>
 </div>
