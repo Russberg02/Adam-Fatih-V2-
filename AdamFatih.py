@@ -9,7 +9,7 @@ from matplotlib.lines import Line2D
 # Configuration
 st.set_page_config(
     layout="wide",
-    page_title="Assessment & Diagnostics for Aging Materials Fatigue Assessment Tool for Integrity and Health (Adam-Fatih)",
+    page_title="ADAM-FATIH",
     page_icon="⚙️"
 )
 
@@ -223,8 +223,8 @@ st.markdown(f"""
 # App header with high contrast theme
 st.markdown(f"""
 <div style="background-color:{WHITE}; padding:20px; border-radius:5px; margin-bottom:20px; border-bottom: 3px solid {BLACK}">
-    <h1 style="color:{BLACK}; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
-    <p style="color:{DARK_GRAY};">Pipeline Integrity Management System for Energy Sector</p>
+    <h1 style="color:{BLACK}; margin:0;">⚙️ Assessment & Diagnostics for Aging Materials Fatigue Assessment Tool for Integrity and Health (Adam-Fatih)</h1>
+    <p style="color:{DARK_GRAY};">Pipeline Integrity Management System</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -631,8 +631,11 @@ with ref_col2:
         st.markdown(f"""
         <div style="color:{BLACK};">
         - [Case Study: Pipeline Failure Analysis](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
+        
         - [Corroded Pipe Burst Database](https://docs.google.com/spreadsheets/d/1YJ7ziuc_IhU7-MMZOnRmh4h21_gf6h5Z/edit?gid=56754844#gid=56754844)
+        
         - [Pre-Assessment Questionnaire](https://forms.gle/wPvcgnZAC57MkCxN8)
+        
         - [Post-Assessment Feedback](https://forms.gle/FdiKqpMLzw9ENscA9)
         </div>
         """, unsafe_allow_html=True)
