@@ -268,39 +268,21 @@ st.markdown(f"""
 
 # Dataset selection tabs
 st.markdown("### Dataset Selection")
-col1, col2, col3 = st.columns(3)
-with col1:
-    active = 'active' if st.session_state.current_dataset == 'Dataset 1' else 'inactive'
-    st.markdown(f"<div class='dataset-tab {active}' onclick='setCurrentDataset(\"Dataset 1\")'>Dataset 1</div>", 
-                unsafe_allow_html=True)
-with col2:
-    active = 'active' if st.session_state.current_dataset == 'Dataset 2' else 'inactive'
-    st.markdown(f"<div class='dataset-tab {active}' onclick='setCurrentDataset(\"Dataset 2\")'>Dataset 2</div>", 
-                unsafe_allow_html=True)
-with col3:
-    active = 'active' if st.session_state.current_dataset == 'Dataset 3' else 'inactive'
-    st.markdown(f"<div class='dataset-tab {active}' onclick='setCurrentDataset(\"Dataset 3\")'>Dataset 3</div>", 
-                unsafe_allow_html=True)
-
-# Add JavaScript for dataset switching
-st.markdown("""
-<script>
-function setCurrentDataset(datasetName) {
-    fetch('/_stcore/set-current-dataset?dataset=' + datasetName, {
-        method: "POST"
-    }).then(() => {
-        window.location.reload();
-    });
-}
-</script>
-""", unsafe_allow_html=True)
+current_dataset = st.radio(
+    "Select dataset:",
+    options=["Dataset 1", "Dataset 2", "Dataset 3"],
+    index=["Dataset 1", "Dataset 2", "Dataset 3"].index(st.session_state.current_dataset),
+    horizontal=True,
+    label_visibility="collapsed"
+)
+st.session_state.current_dataset = current_dataset
 
 # Sidebar with improved contrast headers
 with st.sidebar:
     st.markdown(f"""
     <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
         <h3 style="color:{BLACK}; margin:0;">Pipeline Parameters</h3>
-        <p style="color:{BLACK}; margin:0;">Current: {st.session_state.current_dataset}</p>
+        <p style="color:{BLACK}; margin:0;">Current: <strong>{st.session_state.current_dataset}</strong></p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -330,18 +312,20 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button('Run Analysis', use_container_width=True, type="primary"):
-            st.session_state.run_analysis = True
-            # Store inputs for current dataset
-            st.session_state.datasets[st.session_state.current_dataset]['inputs'] = inputs
-    
-    with col2:
-        if st.button('Reset All', use_container_width=True):
-            st.session_state.run_analysis = False
-            # Reset all datasets
-            for key in st.session_state.datasets:
-                st.session_state.datasets[key] = {'inputs': None, 'results': None}
+with col1:
+    if st.button('Run Analysis', use_container_width=True, type="primary"):
+        st.session_state.run_analysis = True
+        # Store inputs for current dataset
+        st.session_state.datasets[st.session_state.current_dataset]['inputs'] = inputs
+        # Clear results to force recalculation
+        st.session_state.datasets[st.session_state.current_dataset]['results'] = None
+
+with col2:
+    if st.button('Reset All', use_container_width=True):
+        st.session_state.run_analysis = False
+        # Reset all datasets
+        for key in st.session_state.datasets:
+            st.session_state.datasets[key] = {'inputs': None, 'results': None}
 
 # Image and intro section
 st.subheader('Pipeline Configuration')
@@ -480,10 +464,10 @@ if st.session_state.get('run_analysis', False):
             
             # Burst Pressure Results in Card Layout
             st.markdown(f"""
-            <div class="section-header">
-                <h3 style="margin:0;">📊 Burst Pressure Assessment ({st.session_state.current_dataset})</h3>
-            </div>
-            """, unsafe_allow_html=True)
+<div class="section-header">
+    <h3 style="margin:0;">📊 Burst Pressure Assessment ({st.session_state.current_dataset})</h3>
+</div>
+""", unsafe_allow_html=True)
             
             burst_cols = st.columns(5)
             burst_data = [
@@ -508,10 +492,10 @@ if st.session_state.get('run_analysis', False):
             
             # Stress Analysis
             st.markdown(f"""
-            <div class="section-header">
-                <h3 style="margin:0;">📈 Stress Analysis ({st.session_state.current_dataset})</h3>
-            </div>
-            """, unsafe_allow_html=True)
+<div class="section-header">
+    <h3 style="margin:0;">📈 Stress Analysis ({st.session_state.current_dataset})</h3>
+</div>
+""", unsafe_allow_html=True)
             
             stress_col1, stress_col2 = st.columns([1, 1])
             
@@ -579,10 +563,10 @@ if st.session_state.get('run_analysis', False):
             
             # Fatigue Assessment with Safety Status
             st.markdown(f"""
-            <div class="section-header">
-                <h3 style="margin:0;">🛡️ Fatigue Assessment ({st.session_state.current_dataset})</h3>
-            </div>
-            """, unsafe_allow_html=True)
+<div class="section-header">
+    <h3 style="margin:0;">🛡️ Fatigue Assessment ({st.session_state.current_dataset})</h3>
+</div>
+""", unsafe_allow_html=True)
             
             fatigue_cols = st.columns(5)
             fatigue_data = [
