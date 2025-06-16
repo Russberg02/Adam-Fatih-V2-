@@ -352,6 +352,12 @@ with st.sidebar:
     with st.expander("📊 Operating Conditions", expanded=True):
         inputs['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 10)
         inputs['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 5)
+        
+    with st.expander("📈 Corrosion Growth", expanded=True):
+        inputs['inspection_year'] = st.number_input('Inspection Year', min_value=1900, max_value=2100, value=2023)
+        inputs['radial_corrosion_rate'] = st.slider('Radial Corrosion Rate (mm/year)', 0.01, 2.0, 0.1, 0.01)
+        inputs['axial_corrosion_rate'] = st.slider('Axial Corrosion Rate (mm/year)', 0.01, 2.0, 0.1, 0.01)
+        inputs['projection_years'] = st.slider('Projection Period (years)', 1, 50, 20, 1)
     
     st.markdown("---")
     st.markdown(f"""
@@ -361,12 +367,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("📈 Corrosion Growth", expanded=True):
-    inputs['inspection_year'] = st.number_input('Inspection Year', min_value=1900, max_value=2100, value=2023)
-    inputs['radial_corrosion_rate'] = st.slider('Radial Corrosion Rate (mm/year)', 0.01, 2.0, 0.1, 0.01)
-    inputs['axial_corrosion_rate'] = st.slider('Axial Corrosion Rate (mm/year)', 0.01, 2.0, 0.1, 0.01)
-    inputs['projection_years'] = st.slider('Projection Period (years)', 1, 50, 20, 1)
-    
     col1, col2 = st.columns(2)
     with col1:
         if st.button('Run Analysis', use_container_width=True, type="primary"):
@@ -434,7 +434,7 @@ def calculate_pressures(inputs):
     else:
         P_asme = (2 * t * UTS / D) * (1 - (Dc/t))
     
-    Q = math.sqrt(1 + 0.31 * (Lc**2) / (D * t))
+    Q = math.sqrt(1 + 0.31 * (Lc**2) / (D * t)))
     P_dnv = (2 * UTS * t / (D - t)) * ((1 - (Dc/t)) / (1 - (Dc/(t * Q))))
     P_pcorrc = (2 * t * UTS / D) * (1 - Dc/t)
     
@@ -509,7 +509,7 @@ def calculate_ffs_assessment(inputs, current_depth, current_length):
         # Cap depth at 80% wall thickness
         d = min(d, inputs['pipe_thickness'] * 0.8)
         
-        # Calculate burst pressures using existing models
+        # Calculate burst pressures
         t = inputs['pipe_thickness']
         D = inputs['pipe_diameter']
         UTS = inputs['uts']
@@ -525,7 +525,7 @@ def calculate_ffs_assessment(inputs, current_depth, current_length):
             P_asme = (2 * t * UTS / D) * (1 - (d/t))
         
         # DNV model
-        Q = math.sqrt(1 + 0.31 * (L**2) / (D * t))
+        Q = math.sqrt(1 + 0.31 * (L**2) / (D * t)))
         P_dnv = (2 * UTS * t / (D - t)) * ((1 - (d/t)) / (1 - (d/(t * Q))))
         
         # PCORRC model
@@ -586,18 +586,18 @@ if st.session_state.get('run_analysis', False):
                 'stresses': stresses,
                 'fatigue': fatigue
             }
-
+            
             # Get current corrosion parameters
-current_depth = current_data['inputs']['corrosion_depth']
-current_length = current_data['inputs']['corrosion_length']
-
-# Calculate FFS assessment
-ffs_results, failure_years = calculate_ffs_assessment(
-    current_data['inputs'], 
-    current_depth, 
-    current_length
-)
-
+            current_depth = current_data['inputs']['corrosion_depth']
+            current_length = current_data['inputs']['corrosion_length']
+            
+            # Calculate FFS assessment
+            ffs_results, failure_years = calculate_ffs_assessment(
+                current_data['inputs'], 
+                current_depth, 
+                current_length
+            )
+            
             # Burst Pressure Results in Card Layout
             st.markdown(f"""
 <div class="section-header">
@@ -626,104 +626,104 @@ ffs_results, failure_years = calculate_ffs_assessment(
                     </div>
                     """, unsafe_allow_html=True)
             
-# FFS Assessment Section
-st.markdown(f"""
+            # FFS Assessment Section
+            st.markdown(f"""
 <div class="section-header">
     <h3 style="margin:0;">⏳ Fitness-for-Service Assessment ({st.session_state.current_dataset})</h3>
 </div>
 """, unsafe_allow_html=True)
-
-# Create DataFrame for display
-df = pd.DataFrame(ffs_results)
-
-# Display failure predictions in metric cards
-metric_cols = st.columns(3)
-with metric_cols[0]:
-    st.markdown(f"""
-    <div class="material-card">
-        <h4>Current Year</h4>
-        <div style="font-size: 2rem; font-weight: bold; text-align: center; color: {BLACK};">{current_data['inputs']['inspection_year']}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with metric_cols[1]:
-    asme_fail = failure_years.get('ASME', "Beyond projection")
-    st.markdown(f"""
-    <div class="material-card">
-        <h4>ASME Failure Year</h4>
-        <div style="font-size: 2rem; font-weight: bold; text-align: center; color: {'red' if asme_fail != "Beyond projection" else BLACK};">{asme_fail}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with metric_cols[2]:
-    dnv_fail = failure_years.get('DNV', "Beyond projection")
-    st.markdown(f"""
-    <div class="material-card">
-        <h4>DNV Failure Year</h4>
-        <div style="font-size: 2rem; font-weight: bold; text-align: center; color: {'red' if dnv_fail != "Beyond projection" else BLACK};">{dnv_fail}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# Plot burst pressure over time
-fig, ax1 = plt.subplots(figsize=(10, 6))
-fig.patch.set_facecolor(WHITE)
-
-# Burst Pressure Plot
-ax1.plot(df['year'], df['P_asme'], label='ASME B31G', color=COLORS['Goodman'], linestyle='-', linewidth=2)
-ax1.plot(df['year'], df['P_dnv'], label='DNV-RP-F101', color=COLORS['Soderberg'], linestyle='--', linewidth=2)
-ax1.plot(df['year'], df['P_pcorrc'], label='PCORRC', color=COLORS['Gerber'], linestyle='-.', linewidth=2)
-ax1.axhline(y=current_data['inputs']['max_pressure'], color=RED, linestyle=':', linewidth=2.5, label='MAOP')
-ax1.set_xlabel('Year', fontsize=10, color=BLACK)
-ax1.set_ylabel('Burst Pressure (MPa)', fontsize=10, color=BLACK)
-ax1.tick_params(axis='y', colors=BLACK)
-ax1.grid(True, linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
-
-# ERF Plot (secondary axis)
-ax2 = ax1.twinx()
-ax2.plot(df['year'], df['critical_erf'], label='Critical ERF', color=BLACK, linewidth=3)
-ax2.axhline(y=1.0, color=RED, linestyle='-', linewidth=2, label='Failure Threshold')
-ax2.set_ylabel('ERF (MAOP/Burst Pressure)', fontsize=10, color=BLACK)
-ax2.tick_params(axis='y', colors=BLACK)
-
-# Formatting
-ax1.set_title('Burst Pressure Projection and ERF', fontsize=12, fontweight='bold', color=BLACK)
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right', facecolor=WHITE, edgecolor=BLACK)
-
-# Set axis colors
-for ax in [ax1, ax2]:
-    ax.spines['bottom'].set_color(BLACK)
-    ax.spines['top'].set_color(BLACK)
-    ax.spines['right'].set_color(BLACK)
-    ax.spines['left'].set_color(BLACK)
-
-st.pyplot(fig)
-
-# Display detailed table
-with st.expander("Detailed Projection Data", expanded=False):
-    # Format columns
-    display_df = df.copy()
-    display_df['Depth'] = display_df['depth'].apply(lambda x: f"{x:.2f} mm")
-    display_df['Length'] = display_df['length'].apply(lambda x: f"{x:.2f} mm")
-    display_df['ASME Burst'] = display_df['P_asme'].apply(lambda x: f"{x:.2f} MPa")
-    display_df['DNV Burst'] = display_df['P_dnv'].apply(lambda x: f"{x:.2f} MPa")
-    display_df['PCORRC Burst'] = display_df['P_pcorrc'].apply(lambda x: f"{x:.2f} MPa")
-    display_df['Critical ERF'] = display_df['critical_erf'].apply(lambda x: f"{x:.3f}")
-    
-    # Highlight failure years
-    def highlight_erf(val):
-        erf = float(val)
-        color = RED if erf >= 1.0 else BLACK
-        weight = "bold" if erf >= 1.0 else "normal"
-        return f'color: {color}; font-weight: {weight};'
-    
-    st.dataframe(
-        display_df[['year', 'Depth', 'Length', 'ASME Burst', 'DNV Burst', 'PCORRC Burst', 'Critical ERF']]
-        .style.applymap(highlight_erf, subset=['Critical ERF']),
-        height=300
-    )
-    
+            
+            # Create DataFrame for display
+            df = pd.DataFrame(ffs_results)
+            
+            # Display failure predictions
+            metric_cols = st.columns(3)
+            with metric_cols[0]:
+                st.markdown(f"""
+                <div class="material-card">
+                    <h4>Current Year</h4>
+                    <div style="font-size: 2rem; font-weight: bold; text-align: center; color: {BLACK};">{current_data['inputs']['inspection_year']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with metric_cols[1]:
+                asme_fail = failure_years.get('ASME', "Beyond projection")
+                st.markdown(f"""
+                <div class="material-card">
+                    <h4>ASME Failure Year</h4>
+                    <div style="font-size: 2rem; font-weight: bold; text-align: center; color: {'red' if asme_fail != "Beyond projection" else BLACK};">{asme_fail}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with metric_cols[2]:
+                dnv_fail = failure_years.get('DNV', "Beyond projection")
+                st.markdown(f"""
+                <div class="material-card">
+                    <h4>DNV Failure Year</h4>
+                    <div style="font-size: 2rem; font-weight: bold; text-align: center; color: {'red' if dnv_fail != "Beyond projection" else BLACK};">{dnv_fail}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Plot burst pressure over time
+            fig, ax1 = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor(WHITE)
+            
+            # Burst Pressure Plot
+            ax1.plot(df['year'], df['P_asme'], label='ASME B31G', color=COLORS['Goodman'], linestyle='-', linewidth=2)
+            ax1.plot(df['year'], df['P_dnv'], label='DNV-RP-F101', color=COLORS['Soderberg'], linestyle='--', linewidth=2)
+            ax1.plot(df['year'], df['P_pcorrc'], label='PCORRC', color=COLORS['Gerber'], linestyle='-.', linewidth=2)
+            ax1.axhline(y=current_data['inputs']['max_pressure'], color=RED, linestyle=':', linewidth=2.5, label='MAOP')
+            ax1.set_xlabel('Year', fontsize=10, color=BLACK)
+            ax1.set_ylabel('Burst Pressure (MPa)', fontsize=10, color=BLACK)
+            ax1.tick_params(axis='y', colors=BLACK)
+            ax1.grid(True, linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
+            
+            # ERF Plot (secondary axis)
+            ax2 = ax1.twinx()
+            ax2.plot(df['year'], df['critical_erf'], label='Critical ERF', color=BLACK, linewidth=3)
+            ax2.axhline(y=1.0, color=RED, linestyle='-', linewidth=2, label='Failure Threshold')
+            ax2.set_ylabel('ERF (MAOP/Burst Pressure)', fontsize=10, color=BLACK)
+            ax2.tick_params(axis='y', colors=BLACK)
+            
+            # Formatting
+            ax1.set_title('Burst Pressure Projection and ERF', fontsize=12, fontweight='bold', color=BLACK)
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right', facecolor=WHITE, edgecolor=BLACK)
+            
+            # Set axis colors
+            for ax in [ax1, ax2]:
+                ax.spines['bottom'].set_color(BLACK)
+                ax.spines['top'].set_color(BLACK)
+                ax.spines['right'].set_color(BLACK)
+                ax.spines['left'].set_color(BLACK)
+            
+            st.pyplot(fig)
+            
+            # Display detailed table
+            with st.expander("Detailed Projection Data", expanded=False):
+                # Format columns
+                display_df = df.copy()
+                display_df['Depth'] = display_df['depth'].apply(lambda x: f"{x:.2f} mm")
+                display_df['Length'] = display_df['length'].apply(lambda x: f"{x:.2f} mm")
+                display_df['ASME Burst'] = display_df['P_asme'].apply(lambda x: f"{x:.2f} MPa")
+                display_df['DNV Burst'] = display_df['P_dnv'].apply(lambda x: f"{x:.2f} MPa")
+                display_df['PCORRC Burst'] = display_df['P_pcorrc'].apply(lambda x: f"{x:.2f} MPa")
+                display_df['Critical ERF'] = display_df['critical_erf'].apply(lambda x: f"{x:.3f}")
+                
+                # Highlight failure years
+                def highlight_erf(val):
+                    erf = float(val)
+                    color = RED if erf >= 1.0 else BLACK
+                    weight = "bold" if erf >= 1.0 else "normal"
+                    return f'color: {color}; font-weight: {weight};'
+                
+                st.dataframe(
+                    display_df[['year', 'Depth', 'Length', 'ASME Burst', 'DNV Burst', 'PCORRC Burst', 'Critical ERF']]
+                    .style.applymap(highlight_erf, subset=['Critical ERF']),
+                    height=300
+                )
+            
             # Stress Analysis
             st.markdown(f"""
 <div class="section-header">
