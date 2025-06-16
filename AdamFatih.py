@@ -189,7 +189,7 @@ st.markdown(f"""
         font-weight: bold !important;
     }}
 
-     /* Add this new section for input fields */
+    /* Add this new section for input fields */
     .stNumberInput, .stSlider {{
         color: var(--text) !important;
     }}
@@ -239,6 +239,35 @@ st.markdown(f"""
     .dataset-tab.inactive {{
         background-color: {LIGHT_GRAY};
         color: {BLACK};
+    }}
+    
+    /* Fix for radio buttons in dark mode */
+    .stRadio > div[role="radiogroup"] > label {{
+        color: {BLACK} !important;
+    }}
+    
+    /* Custom styling for radio buttons */
+    .stRadio > div {{
+        flex-direction: row !important;
+        gap: 15px !important;
+    }}
+    
+    .stRadio > div > label {{
+        background-color: #f0f0f0;
+        padding: 8px 15px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        transition: all 0.3s ease;
+    }}
+    
+    .stRadio > div > label:hover {{
+        background-color: #e0e0e0;
+    }}
+    
+    .stRadio > div > [data-baseweb="radio"]:checked + label {{
+        background-color: {DARK_GRAY} !important;
+        color: {WHITE} !important;
+        border-color: {DARK_GRAY};
     }}
 </style>
 """, unsafe_allow_html=True)
