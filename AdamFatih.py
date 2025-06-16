@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+from PIL import Image
 from matplotlib.lines import Line2D
 
 # Configuration
@@ -13,59 +13,89 @@ st.set_page_config(
     page_icon="⚙️"
 )
 
-# High-contrast color palette optimized for analysis
+# Color palette with high-contrast grayscale for diagrams
 COLORS = {
-    'background': '#f0f2f6',
-    'card': '#ffffff',
-    'text': '#000000',
-    'accent': '#1f77b4',
-    'secondary': '#ff7f0e',
-    'goodman': '#1f77b4',     # Blue
-    'soderberg': '#ff7f0e',   # Orange
-    'gerber': '#2ca02c',      # Green
-    'morrow': '#d62728',      # Red
-    'asme': '#9467bd',        # Purple
-    'safe': '#2ca02c',        # Green
-    'unsafe': '#d62728',      # Red
-    'burst': '#17becf',       # Teal
-    'stress': '#e377c2',      # Pink
-    'fatigue': '#bcbd22'      # Olive
+    'Goodman': '#000000',     # Black
+    'Soderberg': '#444444',   # Dark Gray
+    'Gerber': '#888888',      # Medium Gray
+    'Morrow': '#BBBBBB',      # Light Gray
+    'ASME-Elliptic': '#333333', # Very Dark Gray
+    'OperatingPoint': '#FF0000', # Red (for visibility)
+    'KeyPoints': '#000000'    # Black
 }
 
-# Custom CSS for clean, functional styling
+# High-contrast color palette
+BLACK = "#000000"
+DARK_GRAY = "#333333"
+MEDIUM_GRAY = "#666666"
+LIGHT_GRAY = "#DDDDDD"
+WHITE = "#FFFFFF"
+ACCENT = "#444444"  # Dark gray for visual hierarchy
+RED = "#FF0000"     # For critical indicators
+
+# Custom CSS for high-contrast black and white styling
 st.markdown(f"""
 <style>
     /* Main styling */
     .stApp {{
-        background-color: {COLORS['background']};
-        color: {COLORS['text']};
+        background-color: {WHITE};
+        color: {BLACK};
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }}
     
     /* Titles and headers */
     h1, h2, h3, h4, h5, h6 {{
-        color: {COLORS['accent']} !important;
+        color: {BLACK} !important;
+        border-bottom: 2px solid {BLACK};
         padding-bottom: 0.3rem;
+    }}
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {{
+        background-color: {WHITE};
+        color: {BLACK};
+        border-right: 1px solid {MEDIUM_GRAY};
+    }}
+    
+    .sidebar .sidebar-content {{
+        background-color: {WHITE};
+        color: {BLACK};
+    }}
+    
+    /* Button styling */
+    .stButton>button {{
+        background-color: {MEDIUM_GRAY};
+        color: {WHITE};
+        border-radius: 4px;
+        border: 1px solid {BLACK};
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+    }}
+    
+    .stButton>button:hover {{
+        background-color: {DARK_GRAY};
+        color: {WHITE};
     }}
     
     /* Card styling */
     .card {{
-        background: {COLORS['card']};
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        background: {WHITE};
+        border-radius: 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         padding: 15px;
         margin-bottom: 15px;
-        border-left: 4px solid {COLORS['accent']};
+        border-left: 4px solid {BLACK};
+        border: 1px solid {BLACK};
     }}
     
     /* Status indicators */
     .safe {{
-        color: {COLORS['safe']};
+        color: {MEDIUM_GRAY};
         font-weight: bold;
     }}
     
     .unsafe {{
-        color: {COLORS['unsafe']};
+        color: {RED};
         font-weight: bold;
     }}
     
@@ -73,169 +103,136 @@ st.markdown(f"""
     .value-display {{
         font-size: 1.6rem;
         font-weight: bold;
-        color: {COLORS['accent']};
+        color: {BLACK};
     }}
     
     /* Section headers */
     .section-header {{
-        background-color: {COLORS['card']};
+        background-color: {LIGHT_GRAY};
+        color: {BLACK};
         padding: 10px 15px;
         border-radius: 4px;
-        margin: 20px 0;
-        border-left: 4px solid {COLORS['accent']};
+        margin-top: 20px;
+        border-left: 4px solid {BLACK};
     }}
     
-    /* Button styling */
-    .stButton>button {{
-        background-color: {COLORS['accent']};
-        color: white;
+    /* Material design elements */
+    .material-card {{
+        background: {WHITE};
+        border: 1px solid {BLACK};
         border-radius: 4px;
-        border: none;
-        font-weight: bold;
-        padding: 0.5rem 1rem;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }}
     
-    .stButton>button:hover {{
-        background-color: {COLORS['secondary']};
-        color: white;
-    }}
-    
-    /* Table styling */
-    table {{
-        border: 1px solid #ddd !important;
-    }}
-    
-    /* Progress bar */
-    .progress-bar {{
+    /* Progress bars */
+    .progress-container {{
         height: 8px;
-        background-color: #e0e0e0;
+        background-color: {LIGHT_GRAY};
         border-radius: 4px;
         margin: 10px 0;
         overflow: hidden;
     }}
     
-    .progress-fill {{
+    .progress-bar {{
         height: 100%;
-        background-color: {COLORS['accent']};
+        background-color: {BLACK};
+    }}
+    
+    /* Table styling */
+    table {{
+        border: 1px solid {BLACK} !important;
+    }}
+    
+    tr {{
+        border-bottom: 1px solid {BLACK} !important;
+    }}
+    
+    th, td {{
+        color: {BLACK} !important;
+        background-color: {WHITE} !important;
+        border: 1px solid {BLACK} !important;
+    }}
+    
+    /* Expander styling */
+    .stExpander {{
+        border: 1px solid {BLACK} !important;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }}
+    
+    .st-emotion-cache-1c7k2aw {{
+        border-color: {BLACK} !important;
+    }}
+    
+    /* Plot styling */
+    .st-emotion-cache-1v0mbdj {{
+        border: 1px solid {BLACK} !important;
+        border-radius: 4px;
+        padding: 10px;
+        background-color: {WHITE} !important;
+    }}
+    
+    /* Input fields */
+    .stNumberInput, .stSlider {{
+        color: {BLACK} !important;
+        background-color: {WHITE} !important;
+    }}
+    
+    /* Sidebar headers */
+    .sidebar .stExpander > label {{
+        color: {BLACK} !important;
+        font-weight: bold !important;
     }}
 </style>
 """, unsafe_allow_html=True)
 
-# App header
+# App header with high contrast theme
 st.markdown(f"""
-<div style="background-color:{COLORS['accent']}; padding:20px; border-radius:5px; margin-bottom:20px;">
-    <h1 style="color:white; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
-    <p style="color:#e0e0e0;">Pipeline Integrity Management System for Energy Sector</p>
+<div style="background-color:{WHITE}; padding:20px; border-radius:5px; margin-bottom:20px; border-bottom: 3px solid {BLACK}">
+    <h1 style="color:{BLACK}; margin:0;">⚙️ FATIH - Industrial Fatigue Assessment Tool</h1>
+    <p style="color:{DARK_GRAY};">Pipeline Integrity Management System for Energy Sector</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Initialize session state for configurations
-if 'configurations' not in st.session_state:
-    st.session_state.configurations = [{
-        'name': "Default Configuration",
-        'pipe_thickness': 10.0,
-        'pipe_diameter': 200.0,
-        'pipe_length': 1000.0,
-        'corrosion_length': 50.0,
-        'corrosion_depth': 2.0,
-        'yield_stress': 300.0,
-        'uts': 400.0,
-        'max_pressure': 10,
-        'min_pressure': 5
-    }]
-    
-if 'active_config' not in st.session_state:
-    st.session_state.active_config = 0
-
-# Sidebar for configuration management
+# Sidebar with improved contrast headers
 with st.sidebar:
     st.markdown(f"""
-    <div style="background-color:{COLORS['accent']}; padding:10px; border-radius:4px; margin-bottom:15px;">
-        <h3 style="color:white; margin:0;">Configuration Management</h3>
+    <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
+        <h3 style="color:{BLACK}; margin:0;">Pipeline Parameters</h3>
     </div>
     """, unsafe_allow_html=True)
     
-    # Add/remove configurations
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("➕ Add Config", use_container_width=True):
-            new_config = {
-                'name': f"Config {len(st.session_state.configurations) + 1}",
-                'pipe_thickness': 10.0,
-                'pipe_diameter': 200.0,
-                'pipe_length': 1000.0,
-                'corrosion_length': 50.0,
-                'corrosion_depth': 2.0,
-                'yield_stress': 300.0,
-                'uts': 400.0,
-                'max_pressure': 10,
-                'min_pressure': 5
-            }
-            st.session_state.configurations.append(new_config)
-            st.session_state.active_config = len(st.session_state.configurations) - 1
-            st.experimental_rerun()
-    
-    with col2:
-        if st.button("🗑️ Remove Config", use_container_width=True, 
-                    disabled=len(st.session_state.configurations) <= 1):
-            if len(st.session_state.configurations) > 1:
-                st.session_state.configurations.pop(st.session_state.active_config)
-                st.session_state.active_config = min(st.session_state.active_config, 
-                                                   len(st.session_state.configurations) - 1)
-                st.experimental_rerun()
-    
-    # Configuration selector
-    config_names = [f"{i+1}: {config['name']}" for i, config in enumerate(st.session_state.configurations)]
-    selected_config = st.selectbox(
-        "Select Configuration",
-        options=config_names,
-        index=st.session_state.active_config
-    )
-    st.session_state.active_config = config_names.index(selected_config)
-    
-    # Rename configuration
-    current_config = st.session_state.configurations[st.session_state.active_config]
-    new_name = st.text_input("Configuration Name", value=current_config['name'])
-    current_config['name'] = new_name
-    
-    # Parameter inputs
     with st.expander("📏 Dimensional Parameters", expanded=True):
-        current_config['pipe_thickness'] = st.number_input('Pipe Thickness (mm)', min_value=0.1, 
-                                                         value=current_config['pipe_thickness'])
-        current_config['pipe_diameter'] = st.number_input('Pipe Diameter (mm)', min_value=0.1, 
-                                                        value=current_config['pipe_diameter'])
-        current_config['corrosion_length'] = st.number_input('Corrosion Length (mm)', min_value=0.0, 
-                                                           value=current_config['corrosion_length'])
-        current_config['corrosion_depth'] = st.number_input('Corrosion Depth (mm)', min_value=0.0, max_value=10.0, 
-                                                          value=current_config['corrosion_depth'])
+        inputs = {
+            'pipe_thickness': st.number_input('Pipe Thickness, t (mm)', min_value=0.1, value=10.0),
+            'pipe_diameter': st.number_input('Pipe Diameter, D (mm)', min_value=0.1, value=200.0),
+            'pipe_length': st.number_input('Pipe Length, L (mm)', min_value=0.1, value=1000.0),
+            'corrosion_length': st.number_input('Corrosion Length, Lc (mm)', min_value=0.0, value=50.0),
+            'corrosion_depth': st.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, max_value=10.0, value=2.0)
+        }
     
     with st.expander("🧱 Material Properties", expanded=True):
-        current_config['yield_stress'] = st.number_input('Yield Stress (MPa)', min_value=0.1, 
-                                                       value=current_config['yield_stress'])
-        current_config['uts'] = st.number_input('Ultimate Tensile Strength (MPa)', min_value=0.1, 
-                                              value=current_config['uts'])
+        inputs['yield_stress'] = st.number_input('Yield Stress, Sy (MPa)', min_value=0.1, value=300.0)
+        inputs['uts'] = st.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, value=400.0)
     
     with st.expander("📊 Operating Conditions", expanded=True):
-        current_config['max_pressure'] = st.slider('Max Pressure (MPa)', 0, 50, 
-                                                 current_config['max_pressure'])
-        current_config['min_pressure'] = st.slider('Min Pressure (MPa)', 0, 50, 
-                                                 current_config['min_pressure'])
+        inputs['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 10)
+        inputs['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 5)
     
     st.markdown("---")
-    
-    # Analysis controls
-    if st.button('Run Analysis', use_container_width=True, type="primary"):
-        st.session_state.run_analysis = True
-    
-    if st.button('Reset Analysis', use_container_width=True):
-        st.session_state.run_analysis = False
-    
     st.markdown(f"""
-    <div style="background-color:{COLORS['accent']}; padding:10px; border-radius:4px; margin-top:15px;">
-        <h4 style="color:white; margin:0;">Safety Indicators</h4>
-        <p style="color:#e0e0e0; margin:0;">✅ Safe: Value ≤ 1<br>❌ Unsafe: Value > 1</p>
+    <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-top:15px; border: 1px solid {BLACK}">
+        <h4 style="color:{BLACK}; margin:0;">Safety Indicators</h4>
+        <p style="color:{MEDIUM_GRAY}; margin:0;">✅ Safe: Value ≤ 1<br>❌ Unsafe: Value > 1</p>
     </div>
     """, unsafe_allow_html=True)
+    
+    if st.button('Run Analysis', use_container_width=True, type="primary"):
+        st.session_state.run_analysis = True
+    if st.button('Reset Values', use_container_width=True):
+        st.session_state.run_analysis = False
 
 # Image and intro section
 st.subheader('Pipeline Configuration')
@@ -245,31 +242,35 @@ with col1:
              caption="Fig. 1: Corrosion defect geometry")
 with col2:
     st.markdown(f"""
-    <div class="card">
-        <h4>Assessment Protocol</h4>
+    <div class="material-card">
+        <h4 style="border-bottom: 1px solid {BLACK}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
-            <li>Add configurations using the sidebar</li>
-            <li>Enter parameters for each configuration</li>
+            <li>Enter pipeline dimensions and material properties</li>
+            <li>Specify operating pressure range</li>
             <li>Click "Run Analysis" to perform assessment</li>
-            <li>Compare results across configurations</li>
-            <li>Review burst pressure and fatigue results</li>
+            <li>Review burst pressure calculations</li>
+            <li>Analyze stress and fatigue results</li>
+            <li>Check safety status for all criteria</li>
         </ol>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: {'70%' if st.session_state.get('run_analysis', False) else '20%'};"></div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: {'50%' if st.session_state.get('run_analysis', False) else '10%'};"></div>
         </div>
-        <p style="text-align: right; margin:0; font-weight: bold;">
-            Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}
-        </p>
+        <p style="text-align: right; margin:0; color:{BLACK};">Status: {'Analysis Complete' if st.session_state.get('run_analysis', False) else 'Ready for Input'}</p>
     </div>
     """, unsafe_allow_html=True)
 
-# Engineering calculations
+# Calculations (unchanged from original)
 def calculate_pressures(inputs):
     t = inputs['pipe_thickness']
     D = inputs['pipe_diameter']
     Lc = inputs['corrosion_length']
     Dc = inputs['corrosion_depth']
     UTS = inputs['uts']
+    Sy = inputs['yield_stress']
+    
+    # Validate inputs to prevent division by zero
+    if t <= 0 or D <= 0:
+        raise ValueError("Pipe thickness and diameter must be positive values")
     
     # Intact pipe burst pressures
     P_vm = (4 * t * UTS) / (math.sqrt(3) * D)
@@ -288,11 +289,11 @@ def calculate_pressures(inputs):
     P_pcorrc = (2 * t * UTS / D) * (1 - Dc/t)
     
     return {
-        'Von Mises': P_vm,
-        'Tresca': P_tresca,
-        'ASME B31G': P_asme,
-        'DNV': P_dnv,
-        'PCORRC': P_pcorrc
+        'P_vm': P_vm,
+        'P_tresca': P_tresca,
+        'P_asme': P_asme,
+        'P_dnv': P_dnv,
+        'P_pcorrc': P_pcorrc
     }
 
 def calculate_stresses(inputs):
@@ -326,12 +327,12 @@ def calculate_stresses(inputs):
     sigma_f = UTS + 345  # Morrow's fatigue strength coefficient
     
     return {
-        'Max Stress': sigma_vm_max,
-        'Min Stress': sigma_vm_min,
-        'Alternating Stress': sigma_a,
-        'Mean Stress': sigma_m,
-        'Endurance Limit': Se,
-        'Fatigue Strength': sigma_f
+        'sigma_vm_max': sigma_vm_max,
+        'sigma_vm_min': sigma_vm_min,
+        'sigma_a': sigma_a,
+        'sigma_m': sigma_m,
+        'Se': Se,
+        'sigma_f': sigma_f
     }
 
 def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
@@ -344,236 +345,277 @@ def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
     }
 
 # Main analysis section
-if st.session_state.get('run_analysis', False) and len(st.session_state.configurations) > 0:
+if st.session_state.get('run_analysis', False):
     try:
-        # Calculate all parameters for all configurations
-        all_results = []
-        for config in st.session_state.configurations:
-            pressures = calculate_pressures(config)
-            stresses = calculate_stresses(config)
-            fatigue = calculate_fatigue_criteria(
-                stresses['Alternating Stress'], stresses['Mean Stress'],
-                stresses['Endurance Limit'], config['uts'], config['yield_stress'],
-                stresses['Fatigue Strength']
-            )
-            
-            all_results.append({
-                'name': config['name'],
-                'pressures': pressures,
-                'stresses': stresses,
-                'fatigue': fatigue,
-                'config': config
-            })
+        # Calculate all parameters
+        pressures = calculate_pressures(inputs)
+        stresses = calculate_stresses(inputs)
+        fatigue = calculate_fatigue_criteria(
+            stresses['sigma_a'], stresses['sigma_m'],
+            stresses['Se'], inputs['uts'], inputs['yield_stress'],
+            stresses['sigma_f']
+        )
         
-        # Configuration Comparison
+        # Burst Pressure Results in Card Layout
         st.markdown(f"""
         <div class="section-header">
-            <h3>Configuration Comparison</h3>
+            <h3 style="margin:0;">📊 Burst Pressure Assessment</h3>
         </div>
         """, unsafe_allow_html=True)
         
-        # Create comparison table
-        comparison_data = []
-        for result in all_results:
-            comparison_data.append({
-                'Configuration': result['name'],
-                'Burst Pressure (MPa)': f"{result['pressures']['ASME B31G']:.1f}",
-                'Max Stress (MPa)': f"{result['stresses']['Max Stress']:.1f}",
-                'Min Stress (MPa)': f"{result['stresses']['Min Stress']:.1f}",
-                'Goodman': f"{result['fatigue']['Goodman']:.3f}",
-                'Soderberg': f"{result['fatigue']['Soderberg']:.3f}",
-                'Status': "✅ Safe" if result['fatigue']['Goodman'] <= 1 else "❌ Unsafe"
-            })
+        burst_cols = st.columns(5)
+        burst_data = [
+            ("Von Mises", pressures['P_vm'], BLACK),
+            ("Tresca", pressures['P_tresca'], MEDIUM_GRAY),
+            ("ASME B31G", pressures['P_asme'], DARK_GRAY),
+            ("DNV", pressures['P_dnv'], ACCENT),
+            ("PCORRC", pressures['P_pcorrc'], BLACK)
+        ]
         
-        st.dataframe(pd.DataFrame(comparison_data), use_container_width=True)
-        
-        # Burst Pressure Results
-        st.markdown(f"""
-        <div class="section-header">
-            <h3>Burst Pressure Assessment</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Burst pressure bar chart
-        fig, ax = plt.subplots(figsize=(10, 4))
-        models = list(all_results[0]['pressures'].keys())
-        width = 0.15
-        x = np.arange(len(models))
-        
-        for i, result in enumerate(all_results):
-            values = list(result['pressures'].values())
-            ax.bar(x + (i * width), values, width, label=result['name'])
-        
-        ax.set_ylabel('Pressure (MPa)')
-        ax.set_title('Burst Pressure by Model')
-        ax.set_xticks(x + width * (len(all_results)-1)/2)
-        ax.set_xticklabels(models)
-        ax.legend()
-        ax.grid(axis='y', linestyle='--', alpha=0.7)
-        st.pyplot(fig)
+        for i, (name, value, color) in enumerate(burst_data):
+            with burst_cols[i]:
+                st.markdown(f"""
+                <div class="card" style="border-left: 4px solid {color};">
+                    <h4 style="margin-top: 0;">{name}</h4>
+                    <div class="value-display">{value:.2f} MPa</div>
+                    <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
+                        <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
         # Stress Analysis
         st.markdown(f"""
         <div class="section-header">
-            <h3>Stress Analysis</h3>
+            <h3 style="margin:0;">📈 Stress Analysis</h3>
         </div>
         """, unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
+        stress_col1, stress_col2 = st.columns([1, 1])
         
-        with col1:
-            # Stress metrics table
-            stress_data = []
-            for result in all_results:
-                stress_data.append({
-                    'Config': result['name'],
-                    'Max Stress': f"{result['stresses']['Max Stress']:.1f} MPa",
-                    'Min Stress': f"{result['stresses']['Min Stress']:.1f} MPa",
-                    'Alternating': f"{result['stresses']['Alternating Stress']:.1f} MPa",
-                    'Mean': f"{result['stresses']['Mean Stress']:.1f} MPa"
-                })
-            st.dataframe(pd.DataFrame(stress_data), use_container_width=True)
+        with stress_col1:
+            st.markdown(f"""
+            <div class="material-card">
+                <h4>Stress Parameters</h4>
+                <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
+                    <tr style="border-bottom: 1px solid {BLACK};">
+                        <td style="padding: 8px;">Max VM Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_max']:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid {BLACK};">
+                        <td style="padding: 8px;">Min VM Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_min']:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid {BLACK};">
+                        <td style="padding: 8px;">Alternating Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_a']:.2f} MPa</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid {BLACK};">
+                        <td style="padding: 8px;">Mean Stress</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_m']:.2f} MPa</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">Endurance Limit</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['Se']:.2f} MPa</td>
+                    </tr>
+                </table>
+            </div>
+            """, unsafe_allow_html=True)
         
-        with col2:
-            # Stress visualization
-            fig, ax = plt.subplots(figsize=(8, 4))
-            categories = ['Max Stress', 'Min Stress', 'Alternating Stress']
+        with stress_col2:
+            # Simple stress visualization with high contrast
+            fig, ax = plt.subplots(figsize=(6, 4))
+            categories = ['Max Stress', 'Min Stress', 'Amplitude']
+            values = [
+                stresses['sigma_vm_max'],
+                stresses['sigma_vm_min'],
+                stresses['sigma_a']
+            ]
+            # Grayscale colors for bars
+            colors = [BLACK, MEDIUM_GRAY, LIGHT_GRAY]
+            bars = ax.bar(categories, values, color=colors, edgecolor=BLACK)
             
-            for i, result in enumerate(all_results):
-                values = [
-                    result['stresses']['Max Stress'],
-                    result['stresses']['Min Stress'],
-                    result['stresses']['Alternating Stress']
-                ]
-                ax.plot(categories, values, 'o-', label=result['name'])
+            # Add value labels
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.1f} MPa',
+                        ha='center', va='bottom', fontsize=9, color=BLACK)
             
-            ax.set_ylabel('Stress (MPa)')
-            ax.set_title('Stress Distribution')
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
-            ax.legend()
+            ax.set_ylim(0, max(values) * 1.2)
+            ax.set_title('Stress Distribution', fontsize=10, color=BLACK)
+            ax.grid(axis='y', linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_color(BLACK)
+            ax.spines['bottom'].set_color(BLACK)
+            ax.tick_params(axis='x', colors=BLACK)
+            ax.tick_params(axis='y', colors=BLACK)
+            ax.set_facecolor(WHITE)
+            plt.tight_layout()
             st.pyplot(fig)
         
-        # Fatigue Assessment
+        # Fatigue Assessment with Safety Status
         st.markdown(f"""
         <div class="section-header">
-            <h3>Fatigue Assessment</h3>
+            <h3 style="margin:0;">🛡️ Fatigue Assessment</h3>
         </div>
         """, unsafe_allow_html=True)
         
-        # Fatigue criteria results
         fatigue_cols = st.columns(5)
-        criteria = ['Goodman', 'Soderberg', 'Gerber', 'Morrow', 'ASME-Elliptic']
-        colors = [COLORS['goodman'], COLORS['soderberg'], COLORS['gerber'], 
-                 COLORS['morrow'], COLORS['asme']]
+        fatigue_data = [
+            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", BLACK),
+            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", MEDIUM_GRAY),
+            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", DARK_GRAY),
+            ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", ACCENT),
+            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", BLACK)
+        ]
         
-        for i, criterion in enumerate(criteria):
+        for i, (name, value, equation, color) in enumerate(fatigue_data):
             with fatigue_cols[i]:
-                st.markdown(f"<h4>{criterion}</h4>", unsafe_allow_html=True)
-                for result in all_results:
-                    value = result['fatigue'][criterion]
-                    safe = value <= 1
-                    status = "✅ Safe" if safe else "❌ Unsafe"
-                    status_class = "safe" if safe else "unsafe"
-                    
-                    st.markdown(f"""
-                    <div class="card">
-                        <div><strong>{result['name']}</strong></div>
-                        <div class="value-display">{value:.3f}</div>
-                        <div class="{status_class}">{status}</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: {min(100, value*100)}%; background-color: {colors[i]};"></div>
-                        </div>
+                safe = value <= 1
+                status = "✅ Safe" if safe else "❌ Unsafe"
+                status_class = "safe" if safe else "unsafe"
+                
+                st.markdown(f"""
+                <div class="card" style="border-left: 4px solid {color};">
+                    <h4 style="margin-top: 0;">{name}</h4>
+                    <div style="font-size: 0.85em; margin-bottom: 10px; color:{BLACK};">{equation}</div>
+                    <div class="value-display">{value:.3f}</div>
+                    <div class="{status_class}" style="margin-top: 10px;">{status}</div>
+                    <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
+                        <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
                     </div>
-                    """, unsafe_allow_html=True)
+                </div>
+                """, unsafe_allow_html=True)
         
-        # Enhanced Fatigue Analysis Diagram
+        # Enhanced Plotting with Matplotlib with high contrast
         st.markdown(f"""
         <div class="section-header">
-            <h3>Fatigue Analysis Diagram</h3>
+            <h3 style="margin:0;">📉 Fatigue Analysis Diagram</h3>
         </div>
         """, unsafe_allow_html=True)
         
         fig, ax = plt.subplots(figsize=(10, 6))
         
         # Generate x-axis values
-        max_uts = max([result['config']['uts'] for result in all_results])
-        x = np.linspace(0, max_uts * 1.1, 100)
+        x = np.linspace(0, inputs['uts']*1.1, 100)
         
-        # Plot all criteria with distinct colors
-        ax.plot(x, all_results[0]['stresses']['Endurance Limit'] * (1 - x / max_uts), 
-                color=COLORS['goodman'], linewidth=2, label='Goodman')
-        ax.plot(x, all_results[0]['stresses']['Endurance Limit'] * (1 - x / all_results[0]['config']['yield_stress']), 
-                color=COLORS['soderberg'], linewidth=2, label='Soderberg')
-        ax.plot(x, all_results[0]['stresses']['Endurance Limit'] * (1 - (x / max_uts)**2), 
-                color=COLORS['gerber'], linestyle='--', linewidth=2, label='Gerber')
-        ax.plot(x, all_results[0]['stresses']['Endurance Limit'] * (1 - x / all_results[0]['stresses']['Fatigue Strength']), 
-                color=COLORS['morrow'], linestyle=':', linewidth=2, label='Morrow')
-        ax.plot(x, all_results[0]['stresses']['Endurance Limit'] * np.sqrt(1 - (x / all_results[0]['config']['yield_stress'])**2), 
-                color=COLORS['asme'], linestyle='-.', linewidth=2, label='ASME-Elliptic')
+        # Plot all criteria with distinct grayscale and line styles
+        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 
+                color=COLORS['Goodman'], linewidth=2.5, linestyle='-', label='Goodman')
+        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 
+                color=COLORS['Soderberg'], linewidth=2.5, linestyle='--', label='Soderberg')
+        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 
+                color=COLORS['Gerber'], linestyle=':', linewidth=2.5, label='Gerber')
+        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 
+                color=COLORS['Morrow'], linestyle='-.', linewidth=2.5, label='Morrow')
+        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 
+                color=COLORS['ASME-Elliptic'], linestyle=(0, (5, 1)), linewidth=2.5, label='ASME-Elliptic')
         
-        # Plot operating points for all configurations
-        config_colors = plt.cm.tab10.colors
-        for i, result in enumerate(all_results):
-            ax.scatter(result['stresses']['Mean Stress'], result['stresses']['Alternating Stress'], 
-                      color=config_colors[i], s=100, edgecolor='black', zorder=10,
-                      label=f"{result['name']} (σm={result['stresses']['Mean Stress']:.1f}, σa={result['stresses']['Alternating Stress']:.1f})")
+        # Plot operating point with distinct color
+        ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
+                  color=COLORS['OperatingPoint'], s=150, edgecolor='black', zorder=10,
+                  label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
         
-        # Formatting
-        ax.set_xlim(0, max_uts * 1.1)
-        ax.set_ylim(0, max([result['stresses']['Endurance Limit'] for result in all_results]) * 1.2)
-        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10)
-        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10)
-        ax.set_title('Fatigue Analysis Diagram', fontsize=12, fontweight='bold')
-        ax.grid(True, linestyle='--', alpha=0.7)
-        ax.legend(loc='upper right', fontsize=9)
+        # Mark key points with consistent style
+        ax.scatter(0, stresses['Se'], color=COLORS['KeyPoints'], s=100, marker='o', 
+                  label=f'Se = {stresses["Se"]:.1f} MPa')
+        ax.scatter(inputs['uts'], 0, color=COLORS['KeyPoints'], s=100, marker='s', 
+                  label=f'UTS = {inputs["uts"]:.1f} MPa')
+        ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, marker='^', 
+                  label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+        
+        # Formatting with high contrast
+        max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
+        max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
+        ax.set_xlim(0, max_x)
+        ax.set_ylim(0, max_y)
+        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=BLACK)
+        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10, color=BLACK)
+        ax.set_title('Fatigue Analysis Diagram', fontsize=12, fontweight='bold', color=BLACK)
+        ax.grid(True, linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
+        ax.set_facecolor(WHITE)
+        
+        # Set axis and tick colors to black
+        ax.spines['bottom'].set_color(BLACK)
+        ax.spines['top'].set_color(BLACK) 
+        ax.spines['right'].set_color(BLACK)
+        ax.spines['left'].set_color(BLACK)
+        ax.tick_params(axis='x', colors=BLACK)
+        ax.tick_params(axis='y', colors=BLACK)
+        
+        # Create custom legend
+        ax.legend(loc='upper right', bbox_to_anchor=(1.35, 1), fontsize=9, facecolor=WHITE, edgecolor=BLACK)
+        plt.tight_layout()
         
         st.pyplot(fig)
 
+    except ValueError as e:
+        st.error(f"🚨 Calculation error: {str(e)}")
     except Exception as e:
-        st.error(f"🚨 An error occurred during analysis: {str(e)}")
+        st.error(f"🚨 An unexpected error occurred: {str(e)}")
 else:
     st.markdown(f"""
-    <div class="card">
-        <h4 style="text-align: center;">⏳ Ready for Analysis</h4>
-        <p style="text-align: center;">
-            Configure your pipeline parameters and click 'Run Analysis'
+    <div class="material-card">
+        <h4 style="text-align: center; color:{BLACK};">⏳ Ready for Analysis</h4>
+        <p style="text-align: center; color:{BLACK};">
+            Enter parameters in the sidebar and click 'Run Analysis' to start
         </p>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: 30%;"></div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 30%;"></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# References section
+# References and links in expanders
 st.markdown(f"""
 <div class="section-header">
-    <h3>References & Resources</h3>
+    <h3 style="margin:0;">📚 References & Resources</h3>
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("Research References", expanded=True):
-    st.markdown("""
-    - **ASME B31G-2012**  
-      Manual for Determining the Remaining Strength of Corroded Pipelines
-    - **DNV-RP-F101**  
-      Corroded Pipelines Standard
-    - **Xian-Kui Zhu** (2021)  
-      *Journal of Pipeline Science and Engineering*  
-      Comparative study of burst failure models for corroded pipelines
-    """)
+ref_col1, ref_col2 = st.columns([1, 1])
+with ref_col1:
+    with st.expander("Research References", expanded=True):
+        st.markdown(f"""
+        <div style="color:{BLACK};">
+        - **Xian-Kui Zhu** (2021)  
+          *Journal of Pipeline Science and Engineering*  
+          Comparative study of burst failure models for corroded pipelines  
+          [DOI:10.1016/j.jpse.2021.01.008](https://doi.org/10.1016/j.jpse.2021.01.008)
+        
+        - **ASME B31G-2012**  
+          Manual for Determining the Remaining Strength of Corroded Pipelines
+        
+        - **DNV-RP-F101**  
+          Corroded Pipelines Standard
+        </div>
+        """, unsafe_allow_html=True)
+
+with ref_col2:
+    with st.expander("Additional Resources", expanded=True):
+        st.markdown(f"""
+        <div style="color:{BLACK};">
+        - [Case Study: Pipeline Failure Analysis](https://drive.google.com/file/d/1Ako5uVRPYL5k5JeEQ_Xhl9f3pMRBjCJv/view?usp=sharing)
+        - [Corroded Pipe Burst Database](https://docs.google.com/spreadsheets/d/1YJ7ziuc_IhU7-MMZOnRmh4h21_gf6h5Z/edit?gid=56754844#gid=56754844)
+        - [Pre-Assessment Questionnaire](https://forms.gle/wPvcgnZAC57MkCxN8)
+        - [Post-Assessment Feedback](https://forms.gle/FdiKqpMLzw9ENscA9)
+        </div>
+        """, unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
 st.markdown(f"""
-<div style="background-color:{COLORS['accent']}; padding:15px; border-radius:5px; margin-top:30px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; color:white;">
+<div style="background-color:{LIGHT_GRAY}; padding:20px; border-radius:5px; margin-top:20px; border-top: 2px solid {BLACK}">
+    <div style="display: flex; justify-content: space-between; align-items: center; color:{BLACK};">
         <div>
             <h4 style="margin:0;">FATIH v2.0 | Industrial Pipeline Integrity System</h4>
-            <p style="margin:0; color:#e0e0e0;">© 2023 Engineering Solutions Ltd.</p>
+            <p style="margin:0;">© 2023 Engineering Solutions Ltd.</p>
         </div>
         <div style="text-align: right;">
-            <p style="margin:0;">support@fatih-eng.com</p>
-            <p style="margin:0;">+1 (800) 555-ENGI</p>
+            <p style="margin:0;">Technical Support: support@fatih-eng.com</p>
+            <p style="margin:0;">Phone: +1 (800) 555-ENGI</p>
         </div>
     </div>
 </div>
