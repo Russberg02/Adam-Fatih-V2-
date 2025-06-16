@@ -637,15 +637,15 @@ if st.session_state.get('run_analysis', False) and len(st.session_state.configur
         # Plot reference criteria (using first configuration's Se and Sy)
         first_result = all_results[0]
         ax.plot(x, first_result['stresses']['Se']*(1 - x/first_result['config']['uts']), 
-                color=COLORS['Goodman'], linewidth=2.5, label='Goodman')
+        color=COLORS['Goodman'], linewidth=2.5, label='Goodman')
         ax.plot(x, first_result['stresses']['Se']*(1 - x/first_result['config']['yield_stress'])), 
-                color=COLORS['Soderberg'], linewidth=2.5, label='Soderberg')
+        color=COLORS['Soderberg'], linewidth=2.5, label='Soderberg')
         ax.plot(x, first_result['stresses']['Se']*(1 - (x/first_result['config']['uts'])**2), 
-                color=COLORS['Gerber'], linestyle='--', linewidth=2.5, label='Gerber')
+        color=COLORS['Gerber'], linestyle='--', linewidth=2.5, label='Gerber')
         ax.plot(x, first_result['stresses']['Se']*(1 - x/first_result['stresses']['sigma_f']), 
-                color=COLORS['Morrow'], linestyle=':', linewidth=2.5, label='Morrow')
+        color=COLORS['Morrow'], linestyle=':', linewidth=2.5, label='Morrow')
         ax.plot(x, first_result['stresses']['Se']*np.sqrt(1 - (x/first_result['config']['yield_stress'])**2), 
-                color=COLORS['ASME-Elliptic'], linestyle='-.', linewidth=2.5, label='ASME-Elliptic')
+        color=COLORS['ASME-Elliptic'], linestyle='-.', linewidth=2.5, label='ASME-Elliptic')
         
         # Plot operating points for all configurations with distinct colors
         color_cycle = plt.cm.tab10.colors
