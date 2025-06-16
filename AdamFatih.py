@@ -9,17 +9,17 @@ from matplotlib.lines import Line2D
 # Configuration
 st.set_page_config(
     layout="wide",
-    page_title="FATIH - Industrial Fatigue Assessment",
+    page_title="Assestment & Diagnostic Analysis",
     page_icon="⚙️"
 )
 
 # Color palette with high-contrast grayscale for diagrams
 COLORS = {
-    'Goodman': '#000000',     # Black
-    'Soderberg': '#444444',   # Dark Gray
-    'Gerber': '#888888',      # Medium Gray
-    'Morrow': '#BBBBBB',      # Light Gray
-    'ASME-Elliptic': '#333333', # Very Dark Gray
+    'Goodman': '#d62728',     # Red
+    'Soderberg': '#1f77b4',   # Blue
+    'Gerber': '#ff7f0e',      # Orange
+    'Morrow': '#2ca02c',      # Green
+    'ASME-Elliptic': '#9467bd', # Purple
     'OperatingPoint': '#FF0000', # Red (for visibility)
     'KeyPoints': '#000000'    # Black
 }
@@ -432,7 +432,7 @@ if st.session_state.get('run_analysis', False):
                 stresses['sigma_a']
             ]
             # Grayscale colors for bars
-            colors = [BLACK, MEDIUM_GRAY, LIGHT_GRAY]
+            colors = ['#1f77b4', '#ff7f0e', '#2ca02c']  # Blue, Orange, Green
             bars = ax.bar(categories, values, color=colors, edgecolor=BLACK)
             
             # Add value labels
@@ -464,12 +464,12 @@ if st.session_state.get('run_analysis', False):
         
         fatigue_cols = st.columns(5)
         fatigue_data = [
-            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", BLACK),
-            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", MEDIUM_GRAY),
-            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", DARK_GRAY),
-            ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", ACCENT),
-            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", BLACK)
-        ]
+    ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", COLORS['Goodman']),
+    ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", COLORS['Soderberg']),
+    ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", COLORS['Gerber']),
+    ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", COLORS['Morrow']),
+    ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", COLORS['ASME-Elliptic'])
+]
         
         for i, (name, value, equation, color) in enumerate(fatigue_data):
             with fatigue_cols[i]:
@@ -497,6 +497,7 @@ if st.session_state.get('run_analysis', False):
         """, unsafe_allow_html=True)
         
         fig, ax = plt.subplots(figsize=(10, 6))
+        fig.patch.set_facecolor(WHITE)
         
         # Generate x-axis values
         x = np.linspace(0, inputs['uts']*1.1, 100)
