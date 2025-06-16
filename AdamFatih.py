@@ -24,6 +24,9 @@ COLORS = {
     'KeyPoints': '#000000'    # Black
 }
 
+# Dataset colors for the three operating points
+DATASET_COLORS = ['#FF0000', '#00FF00', '#0000FF']  # Red, Green, Blue
+
 # High-contrast color palette
 BLACK = "#000000"
 DARK_GRAY = "#333333"
@@ -217,8 +220,43 @@ st.markdown(f"""
         border-color: var(--accent) !important;
         box-shadow: 0 0 0 0.2rem rgba(100, 100, 100, 0.25) !important;
     }}
+    
+    /* Dataset tabs */
+    .dataset-tab {{
+        padding: 8px 12px;
+        margin-right: 5px;
+        border: 1px solid {BLACK};
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-block;
+    }}
+    
+    .dataset-tab.active {{
+        background-color: {BLACK};
+        color: {WHITE};
+    }}
+    
+    .dataset-tab.inactive {{
+        background-color: {LIGHT_GRAY};
+        color: {BLACK};
+    }}
 </style>
 """, unsafe_allow_html=True)
+
+# Initialize session state for datasets
+if 'datasets' not in st.session_state:
+    st.session_state.datasets = {
+        'Dataset 1': {'inputs': None, 'results': None},
+        'Dataset 2': {'inputs': None, 'results': None},
+        'Dataset 3': {'inputs': None, 'results': None}
+    }
+
+if 'current_dataset' not in st.session_state:
+    st.session_state.current_dataset = 'Dataset 1'
+
+# Function to set current dataset
+def set_current_dataset(dataset_name):
+    st.session_state.current_dataset = dataset_name
 
 # App header with high contrast theme
 st.markdown(f"""
@@ -228,11 +266,41 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# Dataset selection tabs
+st.markdown("### Dataset Selection")
+col1, col2, col3 = st.columns(3)
+with col1:
+    active = 'active' if st.session_state.current_dataset == 'Dataset 1' else 'inactive'
+    st.markdown(f"<div class='dataset-tab {active}' onclick='setCurrentDataset(\"Dataset 1\")'>Dataset 1</div>", 
+                unsafe_allow_html=True)
+with col2:
+    active = 'active' if st.session_state.current_dataset == 'Dataset 2' else 'inactive'
+    st.markdown(f"<div class='dataset-tab {active}' onclick='setCurrentDataset(\"Dataset 2\")'>Dataset 2</div>", 
+                unsafe_allow_html=True)
+with col3:
+    active = 'active' if st.session_state.current_dataset == 'Dataset 3' else 'inactive'
+    st.markdown(f"<div class='dataset-tab {active}' onclick='setCurrentDataset(\"Dataset 3\")'>Dataset 3</div>", 
+                unsafe_allow_html=True)
+
+# Add JavaScript for dataset switching
+st.markdown("""
+<script>
+function setCurrentDataset(datasetName) {
+    fetch('/_stcore/set-current-dataset?dataset=' + datasetName, {
+        method: "POST"
+    }).then(() => {
+        window.location.reload();
+    });
+}
+</script>
+""", unsafe_allow_html=True)
+
 # Sidebar with improved contrast headers
 with st.sidebar:
     st.markdown(f"""
     <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
         <h3 style="color:{BLACK}; margin:0;">Pipeline Parameters</h3>
+        <p style="color:{BLACK}; margin:0;">Current: {st.session_state.current_dataset}</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -261,10 +329,19 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-    if st.button('Run Analysis', use_container_width=True, type="primary"):
-        st.session_state.run_analysis = True
-    if st.button('Reset Values', use_container_width=True):
-        st.session_state.run_analysis = False
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button('Run Analysis', use_container_width=True, type="primary"):
+            st.session_state.run_analysis = True
+            # Store inputs for current dataset
+            st.session_state.datasets[st.session_state.current_dataset]['inputs'] = inputs
+    
+    with col2:
+        if st.button('Reset All', use_container_width=True):
+            st.session_state.run_analysis = False
+            # Reset all datasets
+            for key in st.session_state.datasets:
+                st.session_state.datasets[key] = {'inputs': None, 'results': None}
 
 # Image and intro section
 st.subheader('Pipeline Configuration')
@@ -277,12 +354,13 @@ with col2:
     <div class="material-card">
         <h4 style="border-bottom: 1px solid {BLACK}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
+            <li>Select dataset to configure</li>
             <li>Enter pipeline dimensions and material properties</li>
             <li>Specify operating pressure range</li>
             <li>Click "Run Analysis" to perform assessment</li>
             <li>Review burst pressure calculations</li>
             <li>Analyze stress and fatigue results</li>
-            <li>Check safety status for all criteria</li>
+            <li>Compare multiple datasets on fatigue diagram</li>
         </ol>
         <div class="progress-container">
             <div class="progress-bar" style="width: {'50%' if st.session_state.get('run_analysis', False) else '10%'};"></div>
@@ -291,7 +369,7 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-# Calculations (unchanged from original)
+# Calculations
 def calculate_pressures(inputs):
     t = inputs['pipe_thickness']
     D = inputs['pipe_diameter']
@@ -378,222 +456,298 @@ def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
 
 # Main analysis section
 if st.session_state.get('run_analysis', False):
-    try:
-        # Calculate all parameters
-        pressures = calculate_pressures(inputs)
-        stresses = calculate_stresses(inputs)
-        fatigue = calculate_fatigue_criteria(
-            stresses['sigma_a'], stresses['sigma_m'],
-            stresses['Se'], inputs['uts'], inputs['yield_stress'],
-            stresses['sigma_f']
-        )
-        
-        # Burst Pressure Results in Card Layout
-        st.markdown(f"""
-        <div class="section-header">
-            <h3 style="margin:0;">📊 Burst Pressure Assessment</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        burst_cols = st.columns(5)
-        burst_data = [
-            ("Von Mises", pressures['P_vm'], BLACK),
-            ("Tresca", pressures['P_tresca'], MEDIUM_GRAY),
-            ("ASME B31G", pressures['P_asme'], DARK_GRAY),
-            ("DNV", pressures['P_dnv'], ACCENT),
-            ("PCORRC", pressures['P_pcorrc'], BLACK)
-        ]
-        
-        for i, (name, value, color) in enumerate(burst_data):
-            with burst_cols[i]:
-                st.markdown(f"""
-                <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0;">{name}</h4>
-                    <div class="value-display">{value:.2f} MPa</div>
-                    <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
-                        <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        # Stress Analysis
-        st.markdown(f"""
-        <div class="section-header">
-            <h3 style="margin:0;">📈 Stress Analysis</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        stress_col1, stress_col2 = st.columns([1, 1])
-        
-        with stress_col1:
+    # Calculate for current dataset
+    current_data = st.session_state.datasets[st.session_state.current_dataset]
+    
+    if current_data['inputs'] is not None:
+        try:
+            # Calculate all parameters
+            pressures = calculate_pressures(current_data['inputs'])
+            stresses = calculate_stresses(current_data['inputs'])
+            fatigue = calculate_fatigue_criteria(
+                stresses['sigma_a'], stresses['sigma_m'],
+                stresses['Se'], current_data['inputs']['uts'], 
+                current_data['inputs']['yield_stress'],
+                stresses['sigma_f']
+            )
+            
+            # Store results
+            current_data['results'] = {
+                'pressures': pressures,
+                'stresses': stresses,
+                'fatigue': fatigue
+            }
+            
+            # Burst Pressure Results in Card Layout
             st.markdown(f"""
-            <div class="material-card">
-                <h4>Stress Parameters</h4>
-                <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
-                    <tr style="border-bottom: 1px solid {BLACK};">
-                        <td style="padding: 8px;">Max VM Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_max']:.2f} MPa</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid {BLACK};">
-                        <td style="padding: 8px;">Min VM Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_min']:.2f} MPa</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid {BLACK};">
-                        <td style="padding: 8px;">Alternating Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_a']:.2f} MPa</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid {BLACK};">
-                        <td style="padding: 8px;">Mean Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_m']:.2f} MPa</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px;">Endurance Limit</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['Se']:.2f} MPa</td>
-                    </tr>
-                </table>
+            <div class="section-header">
+                <h3 style="margin:0;">📊 Burst Pressure Assessment ({st.session_state.current_dataset})</h3>
             </div>
             """, unsafe_allow_html=True)
-        
-        with stress_col2:
-            # Simple stress visualization with high contrast
-            fig, ax = plt.subplots(figsize=(6, 4))
-            categories = ['Max Stress', 'Min Stress', 'Amplitude']
-            values = [
-                stresses['sigma_vm_max'],
-                stresses['sigma_vm_min'],
-                stresses['sigma_a']
+            
+            burst_cols = st.columns(5)
+            burst_data = [
+                ("Von Mises", pressures['P_vm'], BLACK),
+                ("Tresca", pressures['P_tresca'], MEDIUM_GRAY),
+                ("ASME B31G", pressures['P_asme'], DARK_GRAY),
+                ("DNV", pressures['P_dnv'], ACCENT),
+                ("PCORRC", pressures['P_pcorrc'], BLACK)
             ]
-            # Grayscale colors for bars
-            colors = ['#1f77b4', '#ff7f0e', '#2ca02c']  # Blue, Orange, Green
-            bars = ax.bar(categories, values, color=colors, edgecolor=BLACK)
             
-            # Add value labels
-            for bar in bars:
-                height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{height:.1f} MPa',
-                        ha='center', va='bottom', fontsize=9, color=BLACK)
-            
-            ax.set_ylim(0, max(values) * 1.2)
-            ax.set_title('Stress Distribution', fontsize=10, color=BLACK)
-            ax.grid(axis='y', linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['left'].set_color(BLACK)
-            ax.spines['bottom'].set_color(BLACK)
-            ax.tick_params(axis='x', colors=BLACK)
-            ax.tick_params(axis='y', colors=BLACK)
-            ax.set_facecolor(WHITE)
-            plt.tight_layout()
-            st.pyplot(fig)
-        
-        # Fatigue Assessment with Safety Status
-        st.markdown(f"""
-        <div class="section-header">
-            <h3 style="margin:0;">🛡️ Fatigue Assessment</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        fatigue_cols = st.columns(5)
-        fatigue_data = [
-    ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", COLORS['Goodman']),
-    ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", COLORS['Soderberg']),
-    ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", COLORS['Gerber']),
-    ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", COLORS['Morrow']),
-    ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", COLORS['ASME-Elliptic'])
-]
-        
-        for i, (name, value, equation, color) in enumerate(fatigue_data):
-            with fatigue_cols[i]:
-                safe = value <= 1
-                status = "✅ Safe" if safe else "❌ Unsafe"
-                status_class = "safe" if safe else "unsafe"
-                
-                st.markdown(f"""
-                <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0;">{name}</h4>
-                    <div style="font-size: 0.85em; margin-bottom: 10px; color:{BLACK};">{equation}</div>
-                    <div class="value-display">{value:.3f}</div>
-                    <div class="{status_class}" style="margin-top: 10px;">{status}</div>
-                    <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
-                        <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
+            for i, (name, value, color) in enumerate(burst_data):
+                with burst_cols[i]:
+                    st.markdown(f"""
+                    <div class="card" style="border-left: 4px solid {color};">
+                        <h4 style="margin-top: 0;">{name}</h4>
+                        <div class="value-display">{value:.2f} MPa</div>
+                        <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
+                            <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
+                        </div>
                     </div>
+                    """, unsafe_allow_html=True)
+            
+            # Stress Analysis
+            st.markdown(f"""
+            <div class="section-header">
+                <h3 style="margin:0;">📈 Stress Analysis ({st.session_state.current_dataset})</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            stress_col1, stress_col2 = st.columns([1, 1])
+            
+            with stress_col1:
+                st.markdown(f"""
+                <div class="material-card">
+                    <h4>Stress Parameters</h4>
+                    <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
+                        <tr style="border-bottom: 1px solid {BLACK};">
+                            <td style="padding: 8px;">Max VM Stress</td>
+                            <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_max']:.2f} MPa</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid {BLACK};">
+                            <td style="padding: 8px;">Min VM Stress</td>
+                            <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_min']:.2f} MPa</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid {BLACK};">
+                            <td style="padding: 8px;">Alternating Stress</td>
+                            <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_a']:.2f} MPa</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid {BLACK};">
+                            <td style="padding: 8px;">Mean Stress</td>
+                            <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_m']:.2f} MPa</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px;">Endurance Limit</td>
+                            <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['Se']:.2f} MPa</td>
+                        </tr>
+                    </table>
                 </div>
                 """, unsafe_allow_html=True)
-        
-        # Enhanced Plotting with Matplotlib with high contrast
-        st.markdown(f"""
-        <div class="section-header">
-            <h3 style="margin:0;">📉 Fatigue Analysis Diagram</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        fig, ax = plt.subplots(figsize=(10, 6))
-        fig.patch.set_facecolor(WHITE)
-        
-        # Generate x-axis values
-        x = np.linspace(0, inputs['uts']*1.1, 100)
-        
-        # Plot all criteria with distinct grayscale and line styles
-        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 
-                color=COLORS['Goodman'], linewidth=2.5, linestyle='-', label='Goodman')
-        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 
-                color=COLORS['Soderberg'], linewidth=2.5, linestyle='--', label='Soderberg')
-        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 
-                color=COLORS['Gerber'], linestyle=':', linewidth=2.5, label='Gerber')
-        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 
-                color=COLORS['Morrow'], linestyle='-.', linewidth=2.5, label='Morrow')
-        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 
-                color=COLORS['ASME-Elliptic'], linestyle=(0, (5, 1)), linewidth=2.5, label='ASME-Elliptic')
-        
-        # Plot operating point with distinct color
-        ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-                  color=COLORS['OperatingPoint'], s=150, edgecolor='black', zorder=10,
-                  label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
-        
-        # Mark key points with consistent style
-        ax.scatter(0, stresses['Se'], color=COLORS['KeyPoints'], s=100, marker='o', 
-                  label=f'Se = {stresses["Se"]:.1f} MPa')
-        ax.scatter(inputs['uts'], 0, color=COLORS['KeyPoints'], s=100, marker='s', 
-                  label=f'UTS = {inputs["uts"]:.1f} MPa')
-        ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, marker='^', 
-                  label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
-        
-        # Formatting with high contrast
-        max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
-        max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
-        ax.set_xlim(0, max_x)
-        ax.set_ylim(0, max_y)
-        ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=BLACK)
-        ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10, color=BLACK)
-        ax.set_title('Fatigue Analysis Diagram', fontsize=12, fontweight='bold', color=BLACK)
-        ax.grid(True, linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
-        ax.set_facecolor(WHITE)
-        
-        # Set axis and tick colors to black
-        ax.spines['bottom'].set_color(BLACK)
-        ax.spines['top'].set_color(BLACK) 
-        ax.spines['right'].set_color(BLACK)
-        ax.spines['left'].set_color(BLACK)
-        ax.tick_params(axis='x', colors=BLACK)
-        ax.tick_params(axis='y', colors=BLACK)
-        
-        # Create custom legend
-        ax.legend(loc='upper right', bbox_to_anchor=(1.35, 1), fontsize=9, facecolor=WHITE, edgecolor=BLACK)
-        plt.tight_layout()
-        
-        st.pyplot(fig)
+            
+            with stress_col2:
+                # Simple stress visualization with high contrast
+                fig, ax = plt.subplots(figsize=(6, 4))
+                categories = ['Max Stress', 'Min Stress', 'Amplitude']
+                values = [
+                    stresses['sigma_vm_max'],
+                    stresses['sigma_vm_min'],
+                    stresses['sigma_a']
+                ]
+                # Grayscale colors for bars
+                colors = ['#1f77b4', '#ff7f0e', '#2ca02c']  # Blue, Orange, Green
+                bars = ax.bar(categories, values, color=colors, edgecolor=BLACK)
+                
+                # Add value labels
+                for bar in bars:
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height,
+                            f'{height:.1f} MPa',
+                            ha='center', va='bottom', fontsize=9, color=BLACK)
+                
+                ax.set_ylim(0, max(values) * 1.2)
+                ax.set_title('Stress Distribution', fontsize=10, color=BLACK)
+                ax.grid(axis='y', linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['left'].set_color(BLACK)
+                ax.spines['bottom'].set_color(BLACK)
+                ax.tick_params(axis='x', colors=BLACK)
+                ax.tick_params(axis='y', colors=BLACK)
+                ax.set_facecolor(WHITE)
+                plt.tight_layout()
+                st.pyplot(fig)
+            
+            # Fatigue Assessment with Safety Status
+            st.markdown(f"""
+            <div class="section-header">
+                <h3 style="margin:0;">🛡️ Fatigue Assessment ({st.session_state.current_dataset})</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            fatigue_cols = st.columns(5)
+            fatigue_data = [
+                ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", COLORS['Goodman']),
+                ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", COLORS['Soderberg']),
+                ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", COLORS['Gerber']),
+                ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", COLORS['Morrow']),
+                ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", COLORS['ASME-Elliptic'])
+            ]
+            
+            for i, (name, value, equation, color) in enumerate(fatigue_data):
+                with fatigue_cols[i]:
+                    safe = value <= 1
+                    status = "✅ Safe" if safe else "❌ Unsafe"
+                    status_class = "safe" if safe else "unsafe"
+                    
+                    st.markdown(f"""
+                    <div class="card" style="border-left: 4px solid {color};">
+                        <h4 style="margin-top: 0;">{name}</h4>
+                        <div style="font-size: 0.85em; margin-bottom: 10px; color:{BLACK};">{equation}</div>
+                        <div class="value-display">{value:.3f}</div>
+                        <div class="{status_class}" style="margin-top: 10px;">{status}</div>
+                        <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
+                            <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            # Enhanced Plotting with Matplotlib with high contrast
+            st.markdown(f"""
+            <div class="section-header">
+                <h3 style="margin:0;">📉 Fatigue Analysis Diagram (All Datasets)</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor(WHITE)
+            
+            # Generate x-axis values
+            x = np.linspace(0, inputs['uts']*1.1, 100)
+            
+            # Plot all criteria with distinct grayscale and line styles
+            ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 
+                    color=COLORS['Goodman'], linewidth=2.5, linestyle='-', label='Goodman')
+            ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 
+                    color=COLORS['Soderberg'], linewidth=2.5, linestyle='--', label='Soderberg')
+            ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 
+                    color=COLORS['Gerber'], linestyle=':', linewidth=2.5, label='Gerber')
+            ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 
+                    color=COLORS['Morrow'], linestyle='-.', linewidth=2.5, label='Morrow')
+            ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 
+                    color=COLORS['ASME-Elliptic'], linestyle=(0, (5, 1)), linewidth=2.5, label='ASME-Elliptic')
+            
+            # Plot operating points for all datasets
+            markers = ['o', 's', 'D']  # Circle, Square, Diamond
+            for i, (dataset_name, dataset) in enumerate(st.session_state.datasets.items()):
+                if dataset['results']:
+                    ds = dataset['results']['stresses']
+                    ax.scatter(ds['sigma_m'], ds['sigma_a'], 
+                              color=DATASET_COLORS[i], s=150, edgecolor='black', zorder=10,
+                              marker=markers[i], label=f'{dataset_name} (σm={ds["sigma_m"]:.1f}, σa={ds["sigma_a"]:.1f})')
+            
+            # Mark key points with consistent style
+            ax.scatter(0, stresses['Se'], color=COLORS['KeyPoints'], s=100, marker='o', 
+                      label=f'Se = {stresses["Se"]:.1f} MPa')
+            ax.scatter(inputs['uts'], 0, color=COLORS['KeyPoints'], s=100, marker='s', 
+                      label=f'UTS = {inputs["uts"]:.1f} MPa')
+            ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, marker='^', 
+                      label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+            
+            # Formatting with high contrast
+            max_x = max(inputs['uts'], inputs['yield_stress'], 
+                      max([ds['results']['stresses']['sigma_m']*1.2 for ds in st.session_state.datasets.values() if ds['results']]))
+            max_y = max(stresses['Se'], 
+                       max([ds['results']['stresses']['sigma_a']*1.5 for ds in st.session_state.datasets.values() if ds['results']]))
+            ax.set_xlim(0, max_x)
+            ax.set_ylim(0, max_y)
+            ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=BLACK)
+            ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10, color=BLACK)
+            ax.set_title('Fatigue Analysis Diagram', fontsize=12, fontweight='bold', color=BLACK)
+            ax.grid(True, linestyle='--', alpha=0.7, color=MEDIUM_GRAY)
+            ax.set_facecolor(WHITE)
+            
+            # Set axis and tick colors to black
+            ax.spines['bottom'].set_color(BLACK)
+            ax.spines['top'].set_color(BLACK) 
+            ax.spines['right'].set_color(BLACK)
+            ax.spines['left'].set_color(BLACK)
+            ax.tick_params(axis='x', colors=BLACK)
+            ax.tick_params(axis='y', colors=BLACK)
+            
+            # Create custom legend
+            ax.legend(loc='upper right', bbox_to_anchor=(1.35, 1), fontsize=9, facecolor=WHITE, edgecolor=BLACK)
+            plt.tight_layout()
+            
+            st.pyplot(fig)
+            
+            # Dataset comparison table
+            st.markdown(f"""
+            <div class="section-header">
+                <h3 style="margin:0;">📋 Dataset Comparison</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Create comparison table
+            comparison_data = []
+            headers = ["Parameter", "Dataset 1", "Dataset 2", "Dataset 3"]
+            
+            # Add mean stress and alternating stress
+            comparison_data.append(["Mean Stress (σm)", "", "", ""])
+            comparison_data.append(["Alternating Stress (σa)", "", "", ""])
+            
+            # Add fatigue criteria
+            for criterion in fatigue_data:
+                comparison_data.append([criterion[0], "", "", ""])
+            
+            # Fill in values
+            for i, dataset_name in enumerate(st.session_state.datasets.keys()):
+                dataset = st.session_state.datasets[dataset_name]
+                if dataset['results']:
+                    stresses = dataset['results']['stresses']
+                    fatigue = dataset['results']['fatigue']
+                    
+                    # Update values
+                    comparison_data[1][i+1] = f"{stresses['sigma_m']:.2f} MPa"
+                    comparison_data[2][i+1] = f"{stresses['sigma_a']:.2f} MPa"
+                    
+                    # Fatigue criteria
+                    for j, criterion in enumerate(fatigue_data):
+                        comparison_data[3+j][i+1] = f"{fatigue[criterion[0]]:.3f}"
+            
+            # Display table
+            html_table = "<table style='width:100%; border-collapse: collapse; border: 1px solid black;'>"
+            html_table += "<tr style='background-color: #f2f2f2;'>"
+            for header in headers:
+                html_table += f"<th style='border: 1px solid black; padding: 8px;'>{header}</th>"
+            html_table += "</tr>"
+            
+            for row_idx, row in enumerate(comparison_data):
+                row_class = "background-color: #f9f9f9;" if row_idx % 2 == 0 else ""
+                html_table += f"<tr style='{row_class}'>"
+                for col_idx, cell in enumerate(row):
+                    if col_idx == 0 and row_idx > 2:
+                        # Make criterion names bold
+                        html_table += f"<td style='border: 1px solid black; padding: 8px; font-weight: bold;'>{cell}</td>"
+                    else:
+                        html_table += f"<td style='border: 1px solid black; padding: 8px;'>{cell}</td>"
+                html_table += "</tr>"
+                
+            html_table += "</table>"
+            
+            st.markdown(html_table, unsafe_allow_html=True)
 
-    except ValueError as e:
-        st.error(f"🚨 Calculation error: {str(e)}")
-    except Exception as e:
-        st.error(f"🚨 An unexpected error occurred: {str(e)}")
+        except ValueError as e:
+            st.error(f"🚨 Calculation error: {str(e)}")
+        except Exception as e:
+            st.error(f"🚨 An unexpected error occurred: {str(e)}")
+    else:
+        st.warning("Please run analysis for this dataset first")
 else:
     st.markdown(f"""
     <div class="material-card">
         <h4 style="text-align: center; color:{BLACK};">⏳ Ready for Analysis</h4>
         <p style="text-align: center; color:{BLACK};">
-            Enter parameters in the sidebar and click 'Run Analysis' to start
+            Select a dataset, enter parameters in the sidebar, and click 'Run Analysis'
         </p>
         <div class="progress-container">
             <div class="progress-bar" style="width: 30%;"></div>
