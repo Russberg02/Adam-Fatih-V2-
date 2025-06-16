@@ -56,13 +56,13 @@ st.markdown(f"""
     /* Sidebar styling */
     [data-testid="stSidebar"] {{
         background-color: {WHITE};
-        color: {BLACK} !important;
+        color: {BLACK};
         border-right: 1px solid {MEDIUM_GRAY};
     }}
     
     .sidebar .sidebar-content {{
         background-color: {WHITE};
-        color: {BLACK} !important;
+        color: {BLACK};
     }}
     
     /* Button styling */
@@ -268,6 +268,27 @@ st.markdown(f"""
         background-color: {DARK_GRAY} !important;
         color: {WHITE} !important;
         border-color: {DARK_GRAY};
+    }}
+    
+    /* FIX FOR DATASET TEXT IN DARK MODE */
+    /* Force radio button text to be black in sidebar */
+    .sidebar .stRadio label {{
+        color: {BLACK} !important;
+    }}
+    
+    /* Ensure radio button circles are visible */
+    .stRadio [data-baseweb="radio"] > div > div > div {{
+        background-color: {BLACK} !important;
+    }}
+    
+    /* Fix for selected radio button text */
+    .stRadio [data-baseweb="radio"]:checked + label {{
+        color: {WHITE} !important;
+    }}
+    
+    /* Fix for non-selected radio button text */
+    .stRadio [data-baseweb="radio"] + label {{
+        color: {BLACK} !important;
     }}
 </style>
 """, unsafe_allow_html=True)
