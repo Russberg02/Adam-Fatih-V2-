@@ -56,13 +56,13 @@ st.markdown(f"""
     /* Sidebar styling */
     [data-testid="stSidebar"] {{
         background-color: {WHITE};
-        color: {BLACK};
+        color: {BLACK} !important;
         border-right: 1px solid {MEDIUM_GRAY};
     }}
     
     .sidebar .sidebar-content {{
         background-color: {WHITE};
-        color: {BLACK};
+        color: {BLACK} !important;
     }}
     
     /* Button styling */
