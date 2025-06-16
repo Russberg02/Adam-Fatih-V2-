@@ -9,7 +9,7 @@ from matplotlib.lines import Line2D
 # Configuration
 st.set_page_config(
     layout="wide",
-    page_title="Assestment & Diagnostic Analysis",
+    page_title="Assessment & Diagnostics for Aging Materials Fatigue Assessment Tool for Integrity and Health (Adam-Fatih)",
     page_icon="⚙️"
 )
 
