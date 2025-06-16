@@ -254,10 +254,6 @@ if 'datasets' not in st.session_state:
 if 'current_dataset' not in st.session_state:
     st.session_state.current_dataset = 'Dataset 1'
 
-# Function to set current dataset
-def set_current_dataset(dataset_name):
-    st.session_state.current_dataset = dataset_name
-
 # App header with high contrast theme
 st.markdown(f"""
 <div style="background-color:{WHITE}; padding:20px; border-radius:5px; margin-bottom:20px; border-bottom: 3px solid {BLACK}">
@@ -266,7 +262,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Dataset selection tabs
+# Dataset selection
 st.markdown("### Dataset Selection")
 current_dataset = st.radio(
     "Select dataset:",
@@ -312,20 +308,20 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
-with col1:
-    if st.button('Run Analysis', use_container_width=True, type="primary"):
-        st.session_state.run_analysis = True
-        # Store inputs for current dataset
-        st.session_state.datasets[st.session_state.current_dataset]['inputs'] = inputs
-        # Clear results to force recalculation
-        st.session_state.datasets[st.session_state.current_dataset]['results'] = None
-
-with col2:
-    if st.button('Reset All', use_container_width=True):
-        st.session_state.run_analysis = False
-        # Reset all datasets
-        for key in st.session_state.datasets:
-            st.session_state.datasets[key] = {'inputs': None, 'results': None}
+    with col1:
+        if st.button('Run Analysis', use_container_width=True, type="primary"):
+            st.session_state.run_analysis = True
+            # Store inputs for current dataset
+            st.session_state.datasets[st.session_state.current_dataset]['inputs'] = inputs
+            # Clear results to force recalculation
+            st.session_state.datasets[st.session_state.current_dataset]['results'] = None
+    
+    with col2:
+        if st.button('Reset All', use_container_width=True):
+            st.session_state.run_analysis = False
+            # Reset all datasets
+            for key in st.session_state.datasets:
+                st.session_state.datasets[key] = {'inputs': None, 'results': None}
 
 # Image and intro section
 st.subheader('Pipeline Configuration')
@@ -637,11 +633,22 @@ if st.session_state.get('run_analysis', False):
             ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, marker='^', 
                       label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
             
-            # Formatting with high contrast
-            max_x = max(inputs['uts'], inputs['yield_stress'], 
-                      max([ds['results']['stresses']['sigma_m']*1.2 for ds in st.session_state.datasets.values() if ds['results']]))
-            max_y = max(stresses['Se'], 
-                       max([ds['results']['stresses']['sigma_a']*1.5 for ds in st.session_state.datasets.values() if ds['results']]))
+            # Formatting with high contrast - handle incomplete datasets
+            max_x = inputs['uts'] * 1.1
+            max_y = stresses['Se'] * 1.5
+            
+            # Collect all operating points to determine axis limits
+            all_points = []
+            for dataset in st.session_state.datasets.values():
+                if dataset['results']:
+                    ds = dataset['results']['stresses']
+                    all_points.append(ds['sigma_m'])
+                    all_points.append(ds['sigma_a'])
+            
+            if all_points:
+                max_x = max(max_x, max(all_points) * 1.2)
+                max_y = max(max_y, max(all_points) * 1.5)
+            
             ax.set_xlim(0, max_x)
             ax.set_ylim(0, max_y)
             ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10, color=BLACK)
@@ -691,12 +698,18 @@ if st.session_state.get('run_analysis', False):
                     fatigue = dataset['results']['fatigue']
                     
                     # Update values
-                    comparison_data[1][i+1] = f"{stresses['sigma_m']:.2f} MPa"
-                    comparison_data[2][i+1] = f"{stresses['sigma_a']:.2f} MPa"
+                    comparison_data[0][i+1] = f"{stresses['sigma_m']:.2f} MPa"
+                    comparison_data[1][i+1] = f"{stresses['sigma_a']:.2f} MPa"
                     
                     # Fatigue criteria
                     for j, criterion in enumerate(fatigue_data):
-                        comparison_data[3+j][i+1] = f"{fatigue[criterion[0]]:.3f}"
+                        comparison_data[2+j][i+1] = f"{fatigue[criterion[0]]:.3f}"
+                else:
+                    # Show placeholder for incomplete datasets
+                    comparison_data[0][i+1] = "N/A"
+                    comparison_data[1][i+1] = "N/A"
+                    for j in range(len(fatigue_data)):
+                        comparison_data[2+j][i+1] = "N/A"
             
             # Display table
             html_table = "<table style='width:100%; border-collapse: collapse; border: 1px solid black;'>"
