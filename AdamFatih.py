@@ -175,6 +175,40 @@ st.markdown(f"""
         font-weight: bold !important;
         text-shadow: 0px 0px 3px rgba(255,255,255,0.5);
     }}
+    
+    /* Multi-config styling */
+    .config-tab {{
+        border: 1px solid {LIGHT_GRAY};
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }}
+    
+    .config-active {{
+        border-left: 4px solid {DARK_GRAY};
+        background-color: #f5f5f5;
+    }}
+    
+    .comparison-table {{
+        width: 100%;
+        border-collapse: collapse;
+    }}
+    
+    .comparison-table th {{
+        background-color: {DARK_GRAY};
+        color: {WHITE};
+        padding: 8px;
+        text-align: left;
+    }}
+    
+    .comparison-table td {{
+        padding: 8px;
+        border-bottom: 1px solid {LIGHT_GRAY};
+    }}
+    
+    .comparison-table tr:nth-child(even) {{
+        background-color: {LIGHT_GRAY};
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -186,30 +220,91 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# Initialize session state for configurations
+if 'configurations' not in st.session_state:
+    st.session_state.configurations = []
+if 'active_config' not in st.session_state:
+    st.session_state.active_config = 0
+
 # Sidebar with improved contrast headers
 with st.sidebar:
     st.markdown(f"""
     <div style="background-color:{BLACK}; padding:10px; border-radius:4px; margin-bottom:15px;">
-        <h3 style="color:{WHITE}; margin:0; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">Pipeline Parameters</h3>
+        <h3 style="color:{WHITE}; margin:0; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">Configuration Management</h3>
     </div>
     """, unsafe_allow_html=True)
     
-    with st.expander("📏 Dimensional Parameters", expanded=True):
-        inputs = {
-            'pipe_thickness': st.number_input('Pipe Thickness, t (mm)', min_value=0.1, value=10.0),
-            'pipe_diameter': st.number_input('Pipe Diameter, D (mm)', min_value=0.1, value=200.0),
-            'pipe_length': st.number_input('Pipe Length, L (mm)', min_value=0.1, value=1000.0),
-            'corrosion_length': st.number_input('Corrosion Length, Lc (mm)', min_value=0.0, value=50.0),
-            'corrosion_depth': st.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, max_value=10.0, value=2.0)
-        }
+    # Configuration management
+    with st.expander("⚙️ Configurations", expanded=True):
+        # Add new configuration
+        if st.button("➕ Add New Configuration"):
+            new_config = {
+                'name': f"Config {len(st.session_state.configurations) + 1}",
+                'pipe_thickness': 10.0,
+                'pipe_diameter': 200.0,
+                'pipe_length': 1000.0,
+                'corrosion_length': 50.0,
+                'corrosion_depth': 2.0,
+                'yield_stress': 300.0,
+                'uts': 400.0,
+                'max_pressure': 10,
+                'min_pressure': 5
+            }
+            st.session_state.configurations.append(new_config)
+            st.session_state.active_config = len(st.session_state.configurations) - 1
+            st.experimental_rerun()
+        
+        # Configuration selector
+        if len(st.session_state.configurations) > 0:
+            selected_config = st.selectbox(
+                "Select Configuration",
+                options=[f"{i+1}: {config['name']}" for i, config in enumerate(st.session_state.configurations)],
+                index=st.session_state.active_config,
+                key="config_selector"
+            )
+            st.session_state.active_config = int(selected_config.split(":")[0]) - 1
+            
+            # Rename configuration
+            new_name = st.text_input("Rename Configuration", 
+                                   value=st.session_state.configurations[st.session_state.active_config]['name'])
+            st.session_state.configurations[st.session_state.active_config]['name'] = new_name
+            
+            # Remove configuration
+            if st.button("🗑️ Remove Current Configuration"):
+                if len(st.session_state.configurations) > 1:
+                    st.session_state.configurations.pop(st.session_state.active_config)
+                    st.session_state.active_config = min(st.session_state.active_config, len(st.session_state.configurations) - 1)
+                    st.experimental_rerun()
+                else:
+                    st.warning("You need at least one configuration")
     
-    with st.expander("🧱 Material Properties", expanded=True):
-        inputs['yield_stress'] = st.number_input('Yield Stress, Sy (MPa)', min_value=0.1, value=300.0)
-        inputs['uts'] = st.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, value=400.0)
-    
-    with st.expander("📊 Operating Conditions", expanded=True):
-        inputs['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 10)
-        inputs['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 5)
+    # Current configuration parameters
+    if len(st.session_state.configurations) > 0:
+        current_config = st.session_state.configurations[st.session_state.active_config]
+        
+        with st.expander("📏 Dimensional Parameters", expanded=True):
+            current_config['pipe_thickness'] = st.number_input('Pipe Thickness, t (mm)', min_value=0.1, 
+                                                            value=current_config['pipe_thickness'])
+            current_config['pipe_diameter'] = st.number_input('Pipe Diameter, D (mm)', min_value=0.1, 
+                                                            value=current_config['pipe_diameter'])
+            current_config['pipe_length'] = st.number_input('Pipe Length, L (mm)', min_value=0.1, 
+                                                          value=current_config['pipe_length'])
+            current_config['corrosion_length'] = st.number_input('Corrosion Length, Lc (mm)', min_value=0.0, 
+                                                               value=current_config['corrosion_length'])
+            current_config['corrosion_depth'] = st.number_input('Corrosion Depth, Dc (mm)', min_value=0.0, 
+                                                             max_value=10.0, value=current_config['corrosion_depth'])
+        
+        with st.expander("🧱 Material Properties", expanded=True):
+            current_config['yield_stress'] = st.number_input('Yield Stress, Sy (MPa)', min_value=0.1, 
+                                                          value=current_config['yield_stress'])
+            current_config['uts'] = st.number_input('Ultimate Tensile Strength, UTS (MPa)', min_value=0.1, 
+                                                  value=current_config['uts'])
+        
+        with st.expander("📊 Operating Conditions", expanded=True):
+            current_config['max_pressure'] = st.slider('Max Operating Pressure (MPa)', 0, 50, 
+                                                     current_config['max_pressure'])
+            current_config['min_pressure'] = st.slider('Min Operating Pressure (MPa)', 0, 50, 
+                                                     current_config['min_pressure'])
     
     st.markdown("---")
     st.markdown(f"""
@@ -235,12 +330,12 @@ with col2:
     <div class="material-card">
         <h4 style="border-bottom: 1px solid {LIGHT_GRAY}; padding-bottom: 5px;">Assessment Protocol</h4>
         <ol>
-            <li>Enter pipeline dimensions and material properties</li>
-            <li>Specify operating pressure range</li>
+            <li>Add multiple configurations using the sidebar</li>
+            <li>Enter parameters for each configuration</li>
             <li>Click "Run Analysis" to perform assessment</li>
+            <li>Compare results across configurations</li>
             <li>Review burst pressure calculations</li>
             <li>Analyze stress and fatigue results</li>
-            <li>Check safety status for all criteria</li>
         </ol>
         <div class="progress-container">
             <div class="progress-bar" style="width: {'50%' if st.session_state.get('run_analysis', False) else '10%'};"></div>
@@ -335,16 +430,53 @@ def calculate_fatigue_criteria(sigma_a, sigma_m, Se, UTS, Sy, sigma_f):
     }
 
 # Main analysis section
-if st.session_state.get('run_analysis', False):
+if st.session_state.get('run_analysis', False) and len(st.session_state.configurations) > 0:
     try:
-        # Calculate all parameters
-        pressures = calculate_pressures(inputs)
-        stresses = calculate_stresses(inputs)
-        fatigue = calculate_fatigue_criteria(
-            stresses['sigma_a'], stresses['sigma_m'],
-            stresses['Se'], inputs['uts'], inputs['yield_stress'],
-            stresses['sigma_f']
-        )
+        # Calculate all parameters for all configurations
+        all_results = []
+        for config in st.session_state.configurations:
+            pressures = calculate_pressures(config)
+            stresses = calculate_stresses(config)
+            fatigue = calculate_fatigue_criteria(
+                stresses['sigma_a'], stresses['sigma_m'],
+                stresses['Se'], config['uts'], config['yield_stress'],
+                stresses['sigma_f']
+            )
+            
+            all_results.append({
+                'name': config['name'],
+                'pressures': pressures,
+                'stresses': stresses,
+                'fatigue': fatigue,
+                'config': config
+            })
+        
+        # Comparison Table
+        st.markdown(f"""
+        <div class="section-header">
+            <h3 style="margin:0;">📊 Configuration Comparison</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Create comparison table
+        comparison_data = []
+        for result in all_results:
+            comparison_data.append({
+                'Configuration': result['name'],
+                'Burst Pressure (ASME)': f"{result['pressures']['P_asme']:.2f} MPa",
+                'Max Stress': f"{result['stresses']['sigma_vm_max']:.2f} MPa",
+                'Min Stress': f"{result['stresses']['sigma_vm_min']:.2f} MPa",
+                'Goodman': f"{result['fatigue']['Goodman']:.3f}",
+                'Soderberg': f"{result['fatigue']['Soderberg']:.3f}",
+                'Gerber': f"{result['fatigue']['Gerber']:.3f}",
+                'Status': "✅ Safe" if all(v <= 1 for v in [
+                    result['fatigue']['Goodman'],
+                    result['fatigue']['Soderberg'],
+                    result['fatigue']['Gerber']
+                ]) else "❌ Unsafe"
+            })
+        
+        st.dataframe(pd.DataFrame(comparison_data), use_container_width=True)
         
         # Burst Pressure Results in Card Layout
         st.markdown(f"""
@@ -353,26 +485,32 @@ if st.session_state.get('run_analysis', False):
         </div>
         """, unsafe_allow_html=True)
         
-        burst_cols = st.columns(5)
-        burst_data = [
-            ("Von Mises", pressures['P_vm'], BLACK),
-            ("Tresca", pressures['P_tresca'], MEDIUM_GRAY),
-            ("ASME B31G", pressures['P_asme'], DARK_GRAY),
-            ("DNV", pressures['P_dnv'], ACCENT),
-            ("PCORRC", pressures['P_pcorrc'], BLACK)
-        ]
+        # Create tabs for each configuration
+        tabs = st.tabs([result['name'] for result in all_results])
         
-        for i, (name, value, color) in enumerate(burst_data):
-            with burst_cols[i]:
-                st.markdown(f"""
-                <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0;">{name}</h4>
-                    <div class="value-display">{value:.2f} MPa</div>
-                    <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
-                        <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+        for i, tab in enumerate(tabs):
+            with tab:
+                result = all_results[i]
+                burst_cols = st.columns(5)
+                burst_data = [
+                    ("Von Mises", result['pressures']['P_vm'], BLACK),
+                    ("Tresca", result['pressures']['P_tresca'], MEDIUM_GRAY),
+                    ("ASME B31G", result['pressures']['P_asme'], DARK_GRAY),
+                    ("DNV", result['pressures']['P_dnv'], ACCENT),
+                    ("PCORRC", result['pressures']['P_pcorrc'], BLACK)
+                ]
+                
+                for j, (name, value, color) in enumerate(burst_data):
+                    with burst_cols[j]:
+                        st.markdown(f"""
+                        <div class="card" style="border-left: 4px solid {color};">
+                            <h4 style="margin-top: 0;">{name}</h4>
+                            <div class="value-display">{value:.2f} MPa</div>
+                            <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
+                                <div style="height: 4px; background: {color}; width: {min(100, value/10*100)}%;"></div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
         
         # Stress Analysis
         st.markdown(f"""
@@ -381,63 +519,68 @@ if st.session_state.get('run_analysis', False):
         </div>
         """, unsafe_allow_html=True)
         
-        stress_col1, stress_col2 = st.columns([1, 1])
+        stress_tabs = st.tabs([result['name'] for result in all_results])
         
-        with stress_col1:
-            st.markdown(f"""
-            <div class="material-card">
-                <h4>Stress Parameters</h4>
-                <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
-                    <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
-                        <td style="padding: 8px;">Max VM Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_max']:.2f} MPa</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
-                        <td style="padding: 8px;">Min VM Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_vm_min']:.2f} MPa</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
-                        <td style="padding: 8px;">Alternating Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_a']:.2f} MPa</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
-                        <td style="padding: 8px;">Mean Stress</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['sigma_m']:.2f} MPa</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px;">Endurance Limit</td>
-                        <td style="text-align: right; padding: 8px; font-weight: bold;">{stresses['Se']:.2f} MPa</td>
-                    </tr>
-                </table>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with stress_col2:
-            # Simple stress visualization
-            fig, ax = plt.subplots(figsize=(6, 4))
-            categories = ['Max Stress', 'Min Stress', 'Amplitude']
-            values = [
-                stresses['sigma_vm_max'],
-                stresses['sigma_vm_min'],
-                stresses['sigma_a']
-            ]
-            colors = [BLACK, MEDIUM_GRAY, DARK_GRAY]
-            bars = ax.bar(categories, values, color=colors)
-            
-            # Add value labels
-            for bar in bars:
-                height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{height:.1f} MPa',
-                        ha='center', va='bottom', fontsize=9)
-            
-            ax.set_ylim(0, max(values) * 1.2)
-            ax.set_title('Stress Distribution', fontsize=10)
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            plt.tight_layout()
-            st.pyplot(fig)
+        for i, tab in enumerate(stress_tabs):
+            with tab:
+                result = all_results[i]
+                stress_col1, stress_col2 = st.columns([1, 1])
+                
+                with stress_col1:
+                    st.markdown(f"""
+                    <div class="material-card">
+                        <h4>Stress Parameters</h4>
+                        <table style="width:100%; border-collapse: collapse; font-size: 0.95rem;">
+                            <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
+                                <td style="padding: 8px;">Max VM Stress</td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">{result['stresses']['sigma_vm_max']:.2f} MPa</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
+                                <td style="padding: 8px;">Min VM Stress</td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">{result['stresses']['sigma_vm_min']:.2f} MPa</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
+                                <td style="padding: 8px;">Alternating Stress</td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">{result['stresses']['sigma_a']:.2f} MPa</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid {LIGHT_GRAY};">
+                                <td style="padding: 8px;">Mean Stress</td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">{result['stresses']['sigma_m']:.2f} MPa</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Endurance Limit</td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">{result['stresses']['Se']:.2f} MPa</td>
+                            </tr>
+                        </table>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with stress_col2:
+                    # Simple stress visualization
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    categories = ['Max Stress', 'Min Stress', 'Amplitude']
+                    values = [
+                        result['stresses']['sigma_vm_max'],
+                        result['stresses']['sigma_vm_min'],
+                        result['stresses']['sigma_a']
+                    ]
+                    colors = [BLACK, MEDIUM_GRAY, DARK_GRAY]
+                    bars = ax.bar(categories, values, color=colors)
+                    
+                    # Add value labels
+                    for bar in bars:
+                        height = bar.get_height()
+                        ax.text(bar.get_x() + bar.get_width()/2., height,
+                                f'{height:.1f} MPa',
+                                ha='center', va='bottom', fontsize=9)
+                    
+                    ax.set_ylim(0, max(values) * 1.2)
+                    ax.set_title('Stress Distribution', fontsize=10)
+                    ax.grid(axis='y', linestyle='--', alpha=0.7)
+                    ax.spines['top'].set_visible(False)
+                    ax.spines['right'].set_visible(False)
+                    plt.tight_layout()
+                    st.pyplot(fig)
         
         # Fatigue Assessment with Safety Status
         st.markdown(f"""
@@ -446,78 +589,79 @@ if st.session_state.get('run_analysis', False):
         </div>
         """, unsafe_allow_html=True)
         
-        fatigue_cols = st.columns(5)
-        fatigue_data = [
-            ("Goodman", fatigue['Goodman'], "σa/Se + σm/UTS = 1", BLACK),
-            ("Soderberg", fatigue['Soderberg'], "σa/Se + σm/Sy = 1", MEDIUM_GRAY),
-            ("Gerber", fatigue['Gerber'], "σa/Se + (σm/UTS)² = 1", DARK_GRAY),
-            ("Morrow", fatigue['Morrow'], "σa/Se + σm/(UTS+345) = 1", ACCENT),
-            ("ASME-Elliptic", fatigue['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", BLACK)
-        ]
+        fatigue_tabs = st.tabs([result['name'] for result in all_results])
         
-        for i, (name, value, equation, color) in enumerate(fatigue_data):
-            with fatigue_cols[i]:
-                safe = value <= 1
-                status = "✅ Safe" if safe else "❌ Unsafe"
-                status_class = "safe" if safe else "unsafe"
+        for i, tab in enumerate(fatigue_tabs):
+            with tab:
+                result = all_results[i]
+                fatigue_cols = st.columns(5)
+                fatigue_data = [
+                    ("Goodman", result['fatigue']['Goodman'], "σa/Se + σm/UTS = 1", BLACK),
+                    ("Soderberg", result['fatigue']['Soderberg'], "σa/Se + σm/Sy = 1", MEDIUM_GRAY),
+                    ("Gerber", result['fatigue']['Gerber'], "σa/Se + (σm/UTS)² = 1", DARK_GRAY),
+                    ("Morrow", result['fatigue']['Morrow'], "σa/Se + σm/(UTS+345) = 1", ACCENT),
+                    ("ASME-Elliptic", result['fatigue']['ASME-Elliptic'], "(σa/Se)² + (σm/Sy)² = 1", BLACK)
+                ]
                 
-                st.markdown(f"""
-                <div class="card" style="border-left: 4px solid {color};">
-                    <h4 style="margin-top: 0;">{name}</h4>
-                    <div style="font-size: 0.85em; margin-bottom: 10px;">{equation}</div>
-                    <div class="value-display">{value:.3f}</div>
-                    <div class="{status_class}" style="margin-top: 10px;">{status}</div>
-                    <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
-                        <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                for j, (name, value, equation, color) in enumerate(fatigue_data):
+                    with fatigue_cols[j]:
+                        safe = value <= 1
+                        status = "✅ Safe" if safe else "❌ Unsafe"
+                        status_class = "safe" if safe else "unsafe"
+                        
+                        st.markdown(f"""
+                        <div class="card" style="border-left: 4px solid {color};">
+                            <h4 style="margin-top: 0;">{name}</h4>
+                            <div style="font-size: 0.85em; margin-bottom: 10px;">{equation}</div>
+                            <div class="value-display">{value:.3f}</div>
+                            <div class="{status_class}" style="margin-top: 10px;">{status}</div>
+                            <div style="height: 4px; background: {LIGHT_GRAY}; margin: 10px 0;">
+                                <div style="height: 4px; background: {color}; width: {min(100, value*100)}%;"></div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
         
-        # Enhanced Plotting with Matplotlib
+        # Enhanced Plotting with Matplotlib - Combined View
         st.markdown(f"""
         <div class="section-header">
-            <h3 style="margin:0;">📉 Fatigue Analysis Diagram</h3>
+            <h3 style="margin:0;">📉 Combined Fatigue Analysis Diagram</h3>
         </div>
         """, unsafe_allow_html=True)
         
         fig, ax = plt.subplots(figsize=(10, 6))
         
-        # Generate x-axis values
-        x = np.linspace(0, inputs['uts']*1.1, 100)
+        # Generate x-axis values based on max UTS across configurations
+        max_uts = max([config['uts'] for config in st.session_state.configurations])
+        x = np.linspace(0, max_uts*1.1, 100)
         
-        # Plot all criteria with distinct colors
-        ax.plot(x, stresses['Se']*(1 - x/inputs['uts']), 
+        # Plot reference criteria (using first configuration's Se and Sy)
+        first_result = all_results[0]
+        ax.plot(x, first_result['stresses']['Se']*(1 - x/first_result['config']['uts']), 
                 color=COLORS['Goodman'], linewidth=2.5, label='Goodman')
-        ax.plot(x, stresses['Se']*(1 - x/inputs['yield_stress']), 
+        ax.plot(x, first_result['stresses']['Se']*(1 - x/first_result['config']['yield_stress'])), 
                 color=COLORS['Soderberg'], linewidth=2.5, label='Soderberg')
-        ax.plot(x, stresses['Se']*(1 - (x/inputs['uts'])**2), 
+        ax.plot(x, first_result['stresses']['Se']*(1 - (x/first_result['config']['uts'])**2), 
                 color=COLORS['Gerber'], linestyle='--', linewidth=2.5, label='Gerber')
-        ax.plot(x, stresses['Se']*(1 - x/stresses['sigma_f']), 
+        ax.plot(x, first_result['stresses']['Se']*(1 - x/first_result['stresses']['sigma_f']), 
                 color=COLORS['Morrow'], linestyle=':', linewidth=2.5, label='Morrow')
-        ax.plot(x, stresses['Se']*np.sqrt(1 - (x/inputs['yield_stress'])**2), 
+        ax.plot(x, first_result['stresses']['Se']*np.sqrt(1 - (x/first_result['config']['yield_stress'])**2), 
                 color=COLORS['ASME-Elliptic'], linestyle='-.', linewidth=2.5, label='ASME-Elliptic')
         
-        # Plot operating point with distinct color
-        ax.scatter(stresses['sigma_m'], stresses['sigma_a'], 
-                  color=COLORS['OperatingPoint'], s=150, edgecolor='black', zorder=10,
-                  label=f'Operating Point (σm={stresses["sigma_m"]:.1f}, σa={stresses["sigma_a"]:.1f})')
-        
-        # Mark key points with consistent color
-        ax.scatter(0, stresses['Se'], color=COLORS['KeyPoints'], s=100, 
-                  label=f'Se = {stresses["Se"]:.1f} MPa')
-        ax.scatter(inputs['uts'], 0, color=COLORS['KeyPoints'], s=100, 
-                  label=f'UTS = {inputs["uts"]:.1f} MPa')
-        ax.scatter(inputs['yield_stress'], 0, color=COLORS['KeyPoints'], s=100, 
-                  label=f'Sy = {inputs["yield_stress"]:.1f} MPa')
+        # Plot operating points for all configurations with distinct colors
+        color_cycle = plt.cm.tab10.colors
+        for i, result in enumerate(all_results):
+            ax.scatter(result['stresses']['sigma_m'], result['stresses']['sigma_a'], 
+                      color=color_cycle[i % len(color_cycle)], s=150, edgecolor='black', zorder=10,
+                      label=f"{result['name']} (σm={result['stresses']['sigma_m']:.1f}, σa={result['stresses']['sigma_a']:.1f})")
         
         # Formatting
-        max_x = max(inputs['uts'], inputs['yield_stress'], stresses['sigma_m']*1.2)
-        max_y = max(stresses['Se'], stresses['sigma_a']*1.5)
+        max_x = max([result['stresses']['sigma_m']*1.2 for result in all_results] + [max_uts])
+        max_y = max([result['stresses']['sigma_a']*1.5 for result in all_results] + [first_result['stresses']['Se']])
         ax.set_xlim(0, max_x)
         ax.set_ylim(0, max_y)
         ax.set_xlabel('Mean Stress (σm) [MPa]', fontsize=10)
         ax.set_ylabel('Alternating Stress (σa) [MPa]', fontsize=10)
-        ax.set_title('Fatigue Analysis Diagram', fontsize=12, fontweight='bold')
+        ax.set_title('Combined Fatigue Analysis Diagram', fontsize=12, fontweight='bold')
         ax.grid(True, linestyle='--', alpha=0.7)
         ax.set_facecolor(WHITE)
         
@@ -536,7 +680,7 @@ else:
     <div class="material-card">
         <h4 style="text-align: center;">⏳ Ready for Analysis</h4>
         <p style="text-align: center;">
-            Enter parameters in the sidebar and click 'Run Analysis' to start
+            Add configurations in the sidebar, enter parameters, and click 'Run Analysis' to start
         </p>
         <div class="progress-container">
             <div class="progress-bar" style="width: 30%;"></div>
