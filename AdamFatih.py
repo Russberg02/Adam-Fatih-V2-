@@ -291,19 +291,23 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Dataset selection
-st.markdown("### Dataset Selection")
-current_dataset = st.radio(
-    "Select dataset:",
-    options=["Dataset 1", "Dataset 2", "Dataset 3"],
-    index=["Dataset 1", "Dataset 2", "Dataset 3"].index(st.session_state.current_dataset),
-    horizontal=True,
-    label_visibility="collapsed"
-)
-st.session_state.current_dataset = current_dataset
-
 # Sidebar with improved contrast headers
 with st.sidebar:
+    # Dataset selection moved to sidebar
+    st.markdown(f"""
+    <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
+        <h3 style="color:{BLACK}; margin:0;">Dataset Selection</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    current_dataset = st.radio(
+        "Select dataset:",
+        options=["Dataset 1", "Dataset 2", "Dataset 3"],
+        index=["Dataset 1", "Dataset 2", "Dataset 3"].index(st.session_state.current_dataset),
+        label_visibility="collapsed"
+    )
+    st.session_state.current_dataset = current_dataset
+    
     st.markdown(f"""
     <div style="background-color:{WHITE}; padding:10px; border-radius:4px; margin-bottom:15px; border: 1px solid {BLACK}">
         <h3 style="color:{BLACK}; margin:0;">Pipeline Parameters</h3>
